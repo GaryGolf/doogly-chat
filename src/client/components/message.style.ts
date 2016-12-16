@@ -15,7 +15,8 @@ export const css = {
     }),
     author: Style.registerStyle({ 
         marginRight: '50px',
-        fontSize: '2rem',        
+        fontSize: '2rem',
+        cursor: 'pointer'        
     }),
     users: Style.registerStyle({ 
         color: 'blue'

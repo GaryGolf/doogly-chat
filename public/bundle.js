@@ -306,6 +306,7 @@
 	    author: exports.Style.registerStyle({
 	        marginRight: '50px',
 	        fontSize: '2rem',
+	        cursor: 'pointer'
 	    }),
 	    users: exports.Style.registerStyle({
 	        color: 'blue'
@@ -986,6 +987,14 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var __assign = (this && this.__assign) || Object.assign || function(t) {
+	    for (var s, i = 1, n = arguments.length; i < n; i++) {
+	        s = arguments[i];
+	        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+	            t[p] = s[p];
+	    }
+	    return t;
+	};
 	var React = __webpack_require__(1);
 	var input_style_1 = __webpack_require__(12);
 	var constants_1 = __webpack_require__(4);
@@ -994,7 +1003,6 @@
 	    function Input(props) {
 	        var _this = _super.call(this, props) || this;
 	        _this.keyUpHandler = function (event) {
-	            // better way to return input to parent
 	            switch (event.key) {
 	                case 'Enter':
 	                    var message = {
@@ -1006,8 +1014,14 @@
 	                    _this.input.value = '';
 	                    break;
 	                default:
-	                    _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
 	            }
+	        };
+	        _this.focusHandler = function (event) {
+	            _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
+	        };
+	        _this.blurHandler = function (event) {
+	            // !! user stops typing
+	            _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
 	        };
 	        // this.socket = io()
 	        _this.placeholder = 'type here';
@@ -1018,9 +1032,14 @@
 	    };
 	    Input.prototype.render = function () {
 	        var _this = this;
+	        var handlers = {
+	            onKeyUp: this.keyUpHandler.bind(this),
+	            onFocus: this.focusHandler.bind(this),
+	            onBlur: this.blurHandler.bind(this)
+	        };
 	        return (React.createElement("div", { className: input_style_1.css.input },
-	            React.createElement("input", { type: "text", ref: function (element) { return _this.input = element; }, onKeyUp: this.keyUpHandler.bind(this), placeholder: this.placeholder }),
-	            React.createElement("input", { type: "checkbox", value: "private", ref: function (element) { return _this.checkbox = element; } }),
+	            React.createElement("input", __assign({ type: "text", ref: function (element) { return _this.input = element; } }, handlers, { placeholder: this.placeholder })),
+	            React.createElement("input", { type: "checkbox", value: "", ref: function (element) { return _this.checkbox = element; } }),
 	            "private",
 	            React.createElement("style", null, input_style_1.Style.getStyles())));
 	    };

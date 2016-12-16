@@ -32,9 +32,6 @@ export default class Input extends React.Component<Props, State> {
     }
 
     keyUpHandler = (event: KeyboardEvent) => {
-
-
-        // better way to return input to parent
         
         switch(event.key){
             case 'Enter' :
@@ -47,16 +44,28 @@ export default class Input extends React.Component<Props, State> {
                 this.input.value = ''
                 break
             default:
-                this.props.onDispatch(SET_TYPYNG_STATUS)
+                // this.props.onDispatch(SET_TYPYNG_STATUS)
         }    
+    }
+    focusHandler = (event: FocusEvent) => {
+        this.props.onDispatch(SET_TYPYNG_STATUS)
+    }
+    blurHandler = (event: FocusEvent) => {
+        // !! user stops typing
+        this.props.onDispatch(SET_TYPYNG_STATUS)
     }
 
     render() {
+        const handlers = {
+            onKeyUp: this.keyUpHandler.bind(this),
+            onFocus:this.focusHandler.bind(this),
+            onBlur: this.blurHandler.bind(this)
+        }
         return (
             <div className={css.input}>
                 <input type="text" ref={element => this.input = element} 
-                    onKeyUp={this.keyUpHandler.bind(this)} placeholder={this.placeholder}/>
-                <input type="checkbox" value="private" ref={element => this.checkbox = element} />
+                     {...handlers} placeholder={this.placeholder}/>
+                <input type="checkbox" value="" ref={element => this.checkbox = element} />
                 private
                 <style>{Style.getStyles()}</style>
             </div>
