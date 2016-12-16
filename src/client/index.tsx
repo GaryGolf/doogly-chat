@@ -7,7 +7,7 @@ import * as io from 'socket.io-client'
 import { iMessage, SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, LOAD_LAST_MESSAGES,
     LOGIN_USER, ADD_RECIPIENT, REMOVE_RECIPIENT
     } from './components/constants'
-// import Message from './components/message'
+
 import MessageList from './components/messagelist'
 import Input from './components/input'
 import Login from './components/login'

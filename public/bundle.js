@@ -63,7 +63,6 @@
 	var ReactDOM = __webpack_require__(2);
 	var io = __webpack_require__(3);
 	var constants_1 = __webpack_require__(4);
-	// import Message from './components/message'
 	var messagelist_1 = __webpack_require__(5);
 	var input_1 = __webpack_require__(11);
 	var login_1 = __webpack_require__(13);
