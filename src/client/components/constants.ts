@@ -11,3 +11,4 @@ export interface iMessage {
 export const SET_TYPYNG_STATUS = 'SET_TYPYNG_STATUS'
 export const GOT_NEW_MESSAGE = 'GOT_NEW_MESSAGE'
 export const LOAD_LAST_MESSAGES = 'LOAD_LAST_MESSAGES'
+export const LOGIN_USER = 'LOGIN_USER'

@@ -4,10 +4,13 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as io from 'socket.io-client'
 
-import {iMessage, SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, LOAD_LAST_MESSAGES} from './components/constants'
+import { iMessage, SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, LOAD_LAST_MESSAGES,
+    LOGIN_USER
+    } from './components/constants'
 // import Message from './components/message'
 import MessageList from './components/messagelist'
 import Input from './components/input'
+import Login from './components/login'
 
 
 interface Props {}
@@ -28,8 +31,6 @@ class DooglyChat extends React.Component<Props, State> {
 
     componentWillMount() {
         this.socket.emit('LoadMessages', null)
-        this.socket.emit('Login', 'Max Lancaster')
-        
         this.socket.on('LoadMessages', (list: iMessage[]) => {
             this.setState({list})
         })
@@ -41,8 +42,8 @@ class DooglyChat extends React.Component<Props, State> {
 
     dispatch = (action: string, payload?: any) => {
         switch(action){
-            case LOAD_LAST_MESSAGES :
-
+            case LOGIN_USER :
+                this.socket.emit('Login', payload)
                 break
             case GOT_NEW_MESSAGE :
                 this.socket.emit('NewMessage', {...payload, users: []})

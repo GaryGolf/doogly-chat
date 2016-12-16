@@ -37,8 +37,10 @@ io.on('connection', socket => {
         if(!message.author) return // not found
         message.date = Date.now()
         message.status = 'sent'
+        messages.push(message)
         socket.emit('NewMessage', message)
         socket.broadcast.emit('NewMessage',message)
+    
     })
 })
 

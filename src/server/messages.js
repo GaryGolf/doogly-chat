@@ -1,9 +1,9 @@
 const users = require('./users')
-const messages  = [
+const  messages  = [
             {
                 author: 'Boris Brodsky',
                 users: ['Nastya','Max Lancaster'],
-                date: Date.now(),
+                date: 1481877130452,
                 message: 'Конечно, мы бы хотели получить от вас в ответ на это тестовое задание 100% реализацию требований, но это вовсе не обязательно, если вы понимаете, что охватить весь предложенный функционал в разумные сроки у вас не получится (в виду любых возможных обстоятельств), выберите комфортный для вас набор из списка требований — уверяем, это никаких не скажется на конечной оценке задания;',
                 status: 'typing',
                 private: true
@@ -11,7 +11,7 @@ const messages  = [
             {
                 author: 'Boris Brodsky',
                 users: [],
-                date: Date.now(),
+                date: 1481877140452,
                 message: 'Let\'s go out, guys',
                 status: 'sending',
                 private: false
@@ -19,7 +19,7 @@ const messages  = [
             {
                 author: 'Eugenya Simonova',
                 users: ['Boris Brodsky'],
-                date: Date.now(),
+                date: 1481877140552,
                 message: 'Kazeol !!',
                 status: 'read',
                 private: false
@@ -38,4 +38,18 @@ exports.getLastMessages = function(name) {
         }
         return true
     })
+}
+
+exports.push = function(message) {
+    if(messages.some(msg => msg.date == message.date)){
+        messages.forEach((msg,idx) => {
+            if(msg.date == message.date) { 
+                messages[idx] = message 
+                return
+            }
+            console.log(idx)
+        })
+    } else {
+        messages.push(message)
+    } 
 }

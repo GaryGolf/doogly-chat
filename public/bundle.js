@@ -72,7 +72,8 @@
 	        var _this = _super.call(this, props) || this;
 	        _this.dispatch = function (action, payload) {
 	            switch (action) {
-	                case constants_1.LOAD_LAST_MESSAGES:
+	                case constants_1.LOGIN_USER:
+	                    _this.socket.emit('Login', payload);
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: [] }));
@@ -92,7 +93,6 @@
 	    DooglyChat.prototype.componentWillMount = function () {
 	        var _this = this;
 	        this.socket.emit('LoadMessages', null);
-	        this.socket.emit('Login', 'Max Lancaster');
 	        this.socket.on('LoadMessages', function (list) {
 	            _this.setState({ list: list });
 	        });
@@ -137,6 +137,7 @@
 	exports.SET_TYPYNG_STATUS = 'SET_TYPYNG_STATUS';
 	exports.GOT_NEW_MESSAGE = 'GOT_NEW_MESSAGE';
 	exports.LOAD_LAST_MESSAGES = 'LOAD_LAST_MESSAGES';
+	exports.LOGIN_USER = 'LOGIN_USER';
 
 
 /***/ },
