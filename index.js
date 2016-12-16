@@ -53,6 +53,10 @@ io.on('connection', socket => {
         }
          socket.emit('NewMessage', message)
     })
+
+    socket.on('MessageReceived', (date) => {
+        socket.broadcast.emit('MessageReceived', date)
+    })
 })
 
 app.use(express.static(path.join(__dirname,'public')))

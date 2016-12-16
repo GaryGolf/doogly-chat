@@ -78,7 +78,6 @@
 	                    _this.setState(__assign({}, _this.state, { login: false }));
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
-	                    console.log(payload);
 	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: _this.users }));
 	                    break;
 	                case constants_1.ADD_RECIPIENT:
@@ -118,6 +117,16 @@
 	        });
 	        this.socket.on('NewMessage', function (message) {
 	            var list = _this.state.list.concat([message]);
+	            _this.setState(__assign({}, _this.state, { list: list }));
+	            _this.socket.emit('MessageReceived', message.date);
+	        });
+	        this.socket.on('MessageReceived', function (date) {
+	            var list = _this.state.list.map(function (msg) {
+	                if (msg.date == date) {
+	                    return __assign({}, msg, { status: 'received' });
+	                }
+	                return msg;
+	            });
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	    };

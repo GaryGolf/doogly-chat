@@ -44,6 +44,16 @@ class DooglyChat extends React.Component<Props, State> {
         this.socket.on('NewMessage', (message: iMessage) => {
             const list = [...this.state.list, message]
             this.setState({...this.state, list})
+            this.socket.emit('MessageReceived', message.date)
+        })
+        this.socket.on('MessageReceived', (date: number) => {
+            const list = this.state.list.map(msg => {
+                if(msg.date == date){
+                    return {...msg, status: 'received'}
+                } 
+                return msg
+            })
+            this.setState({...this.state, list})
         })
     }
 
@@ -55,7 +65,6 @@ class DooglyChat extends React.Component<Props, State> {
                 this.setState({...this.state, login: false})
                 break
             case GOT_NEW_MESSAGE :
-                console.log(payload)
                 this.socket.emit('NewMessage', {...payload, users: this.users})
                 break
             case ADD_RECIPIENT :
