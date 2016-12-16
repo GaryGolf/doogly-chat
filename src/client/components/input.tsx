@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as io from 'socket.io-client'
 
 import {Style, css} from './input.style'
-import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT} from './constants'
+import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT, REMOVE_TYPING_STATUS} from './constants'
 
 
 interface State {}
@@ -48,15 +48,15 @@ export default class Input extends React.Component<Props, State> {
                 this.input.value = ''
                 break
             default:
-                // this.props.onDispatch(SET_TYPYNG_STATUS)
+                this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
         }    
     }
     focusHandler = (event: FocusEvent) => {
-        this.props.onDispatch(SET_TYPYNG_STATUS)
+        // this.props.onDispatch(SET_FOCUS)
     }
     blurHandler = (event: FocusEvent) => {
         // !! user stops typing
-        this.props.onDispatch(SET_TYPYNG_STATUS)
+        this.props.onDispatch(REMOVE_TYPING_STATUS)
     }
     clickHandler = (user: string) => {
         

@@ -32,13 +32,6 @@ export default class Message extends React.Component<Props, State> {
         )
     }
 
-    componentWillMount(){
-        // console.log('will')
-        // this.socket.emit('chat message', 'hello')
-        // this.socket.on('chat message', (msg: string) => {
-        //     console.log(msg)
-        // })
-    }
 
     clickHandler(event: MouseEvent) {
         this.props.onclick(this.props.author)
@@ -55,11 +48,12 @@ export default class Message extends React.Component<Props, State> {
         const users = this.props.users.map(user => '@'+user).join(',')
         const date = new Date(this.props.date)
         const time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()
+        const authorcss = (this.props.private) ? css.private : css.author
             
         return (
             <div className={css.message} onClick={this.clickHandler.bind(this)}>
                 <header>
-                    <span className={css.author}>{this.props.author}</span>
+                    <span className={authorcss}>{this.props.author}</span>
                     <span>{this.props.status}</span>&nbsp;&nbsp;
                     <span>{time}</span>
                 </header>

@@ -18,6 +18,12 @@ export const css = {
         fontSize: '2rem',
         cursor: 'pointer'        
     }),
+    private: Style.registerStyle({ 
+        marginRight: '50px',
+        fontSize: '2rem',
+        color: 'red',
+        cursor: 'pointer'        
+    }),
     users: Style.registerStyle({ 
         color: 'blue'
     }),

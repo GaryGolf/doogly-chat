@@ -75,14 +75,18 @@
 	                case constants_1.LOGIN_USER:
 	                    _this.socket.emit('Login', payload);
 	                    _this.name = payload;
-	                    _this.setState(__assign({}, _this.state, { login: false }));
+	                    _this.login = false;
+	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: _this.users }));
 	                    break;
 	                case constants_1.ADD_RECIPIENT:
-	                    if (!_this.name)
-	                        _this.setState(__assign({}, _this.state, { login: true }));
+	                    if (!_this.name) {
+	                        _this.login = true;
+	                        _this.forceUpdate();
+	                        break;
+	                    }
 	                    if (_this.users.indexOf(payload) != -1 || _this.name == payload)
 	                        break;
 	                    _this.users.push(payload);
@@ -94,9 +98,20 @@
 	                    break;
 	                case constants_1.SET_TYPYNG_STATUS:
 	                    // if user is not logged in 
-	                    if (!_this.name)
-	                        _this.setState(__assign({}, _this.state, { login: true }));
+	                    if (!_this.name) {
+	                        _this.login = true;
+	                        _this.forceUpdate();
+	                        break;
+	                    }
 	                    console.log('typing');
+	                    var message = {
+	                        private: payload,
+	                        users: _this.users
+	                    };
+	                    _this.socket.emit('Typing', message);
+	                    break;
+	                case constants_1.REMOVE_TYPING_STATUS:
+	                    _this.socket.emit('RemoveTyping');
 	                    break;
 	                default:
 	                    break;
@@ -104,9 +119,9 @@
 	        };
 	        _this.socket = Window.prototype.socket = io();
 	        _this.users = [];
+	        _this.login = false;
 	        var list = [];
-	        var login = false;
-	        _this.state = { list: list, login: login };
+	        _this.state = { list: list };
 	        return _this;
 	    }
 	    DooglyChat.prototype.componentWillMount = function () {
@@ -122,16 +137,15 @@
 	        });
 	        this.socket.on('MessageReceived', function (date) {
 	            var list = _this.state.list.map(function (msg) {
-	                if (msg.date == date) {
+	                if (msg.date == date)
 	                    return __assign({}, msg, { status: 'received' });
-	                }
 	                return msg;
 	            });
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	    };
 	    DooglyChat.prototype.render = function () {
-	        if (this.state.login)
+	        if (this.login)
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
 	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),
@@ -171,6 +185,7 @@
 	exports.LOGIN_USER = 'LOGIN_USER';
 	exports.ADD_RECIPIENT = 'ADD_RECIPIENT';
 	exports.REMOVE_RECIPIENT = 'REMOVE_RECIPIENT';
+	exports.REMOVE_TYPING_STATUS = 'REMOVE_TYPING_STATUS';
 
 
 /***/ },
@@ -243,13 +258,6 @@
 	                React.createElement("span", { className: message_style_1.css.more, onClick: _this.moreHandler.bind(_this) }, "more")));
 	        return _this;
 	    }
-	    Message.prototype.componentWillMount = function () {
-	        // console.log('will')
-	        // this.socket.emit('chat message', 'hello')
-	        // this.socket.on('chat message', (msg: string) => {
-	        //     console.log(msg)
-	        // })
-	    };
 	    Message.prototype.clickHandler = function (event) {
 	        this.props.onclick(this.props.author);
 	    };
@@ -262,9 +270,10 @@
 	        var users = this.props.users.map(function (user) { return '@' + user; }).join(',');
 	        var date = new Date(this.props.date);
 	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+	        var authorcss = (this.props.private) ? message_style_1.css.private : message_style_1.css.author;
 	        return (React.createElement("div", { className: message_style_1.css.message, onClick: this.clickHandler.bind(this) },
 	            React.createElement("header", null,
-	                React.createElement("span", { className: message_style_1.css.author }, this.props.author),
+	                React.createElement("span", { className: authorcss }, this.props.author),
 	                React.createElement("span", null, this.props.status),
 	                "\u00A0\u00A0",
 	                React.createElement("span", null, time)),
@@ -299,6 +308,12 @@
 	    author: exports.Style.registerStyle({
 	        marginRight: '50px',
 	        fontSize: '2rem',
+	        cursor: 'pointer'
+	    }),
+	    private: exports.Style.registerStyle({
+	        marginRight: '50px',
+	        fontSize: '2rem',
+	        color: 'red',
 	        cursor: 'pointer'
 	    }),
 	    users: exports.Style.registerStyle({
@@ -1006,14 +1021,15 @@
 	                    _this.input.value = '';
 	                    break;
 	                default:
+	                    _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, _this.checkbox.checked);
 	            }
 	        };
 	        _this.focusHandler = function (event) {
-	            _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
+	            // this.props.onDispatch(SET_FOCUS)
 	        };
 	        _this.blurHandler = function (event) {
 	            // !! user stops typing
-	            _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
+	            _this.props.onDispatch(constants_1.REMOVE_TYPING_STATUS);
 	        };
 	        _this.clickHandler = function (user) {
 	            _this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
@@ -1096,13 +1112,13 @@
 	    function Input(props) {
 	        var _this = _super.call(this, props) || this;
 	        _this.keyUpHandler = function (event) {
-	            // better way to return input to parent
 	            switch (event.key) {
 	                case 'Enter':
 	                    var name_1 = _this.input.value;
 	                    if (name_1 == '')
 	                        return;
 	                    _this.props.onDispatch(constants_1.LOGIN_USER, name_1);
+	                    localStorage['nikname'] = name_1;
 	                    break;
 	                default:
 	            }
@@ -1110,6 +1126,10 @@
 	        _this.placeholder = 'enter your nikname';
 	        return _this;
 	    }
+	    Input.prototype.componentDidMount = function () {
+	        this.input.focus();
+	        this.input.value = localStorage['nikname'] || '';
+	    };
 	    Input.prototype.render = function () {
 	        var _this = this;
 	        return (React.createElement("div", { className: login_style_1.css.login },

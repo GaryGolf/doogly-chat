@@ -23,17 +23,19 @@ export default class Input extends React.Component<Props, State> {
 
     }
 
+    componentDidMount(){
+        this.input.focus()
+        this.input.value = localStorage['nikname'] || ''
+    }
 
     keyUpHandler = (event: KeyboardEvent) => {
-
-
-        // better way to return input to parent
         
         switch(event.key){
             case 'Enter' :
                 const name =  this.input.value
                 if(name == '') return
                 this.props.onDispatch(LOGIN_USER, name)
+                localStorage['nikname'] = name
                 break
             default:
         }    

@@ -57,6 +57,11 @@ io.on('connection', socket => {
     socket.on('MessageReceived', (date) => {
         socket.broadcast.emit('MessageReceived', date)
     })
+
+    socket.on('Typing', (message) => {
+        
+      
+    })
 })
 
 app.use(express.static(path.join(__dirname,'public')))
