@@ -66,6 +66,7 @@
 	// import Message from './components/message'
 	var messagelist_1 = __webpack_require__(5);
 	var input_1 = __webpack_require__(11);
+	var login_1 = __webpack_require__(13);
 	var DooglyChat = (function (_super) {
 	    __extends(DooglyChat, _super);
 	    function DooglyChat(props) {
@@ -74,11 +75,16 @@
 	            switch (action) {
 	                case constants_1.LOGIN_USER:
 	                    _this.socket.emit('Login', payload);
+	                    _this.name = payload;
+	                    _this.setState(__assign({}, _this.state, { login: false }));
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: [] }));
 	                    break;
 	                case constants_1.SET_TYPYNG_STATUS:
+	                    // if user is not logged in 
+	                    if (!_this.name)
+	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                    console.log('typing');
 	                    break;
 	                default:
@@ -87,21 +93,24 @@
 	        };
 	        _this.socket = Window.prototype.socket = io();
 	        var list = [];
-	        _this.state = { list: list };
+	        var login = false;
+	        _this.state = { list: list, login: login };
 	        return _this;
 	    }
 	    DooglyChat.prototype.componentWillMount = function () {
 	        var _this = this;
 	        this.socket.emit('LoadMessages', null);
 	        this.socket.on('LoadMessages', function (list) {
-	            _this.setState({ list: list });
+	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	        this.socket.on('NewMessage', function (message) {
 	            var list = _this.state.list.concat([message]);
-	            _this.setState({ list: list });
+	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	    };
 	    DooglyChat.prototype.render = function () {
+	        if (this.state.login)
+	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
 	            React.createElement(messagelist_1.default, { list: this.state.list }),
 	            React.createElement(input_1.default, { onDispatch: this.dispatch })));
@@ -1034,6 +1043,66 @@
 	        borderSize: 'border-box',
 	        padding: '10px',
 	        bottom: '0px'
+	    }),
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var login_style_1 = __webpack_require__(14);
+	var constants_1 = __webpack_require__(4);
+	var Input = (function (_super) {
+	    __extends(Input, _super);
+	    function Input(props) {
+	        var _this = _super.call(this, props) || this;
+	        _this.keyUpHandler = function (event) {
+	            // better way to return input to parent
+	            switch (event.key) {
+	                case 'Enter':
+	                    var name_1 = _this.input.value;
+	                    if (name_1 == '')
+	                        return;
+	                    _this.props.onDispatch(constants_1.LOGIN_USER, name_1);
+	                    break;
+	                default:
+	            }
+	        };
+	        _this.placeholder = 'enter your nikname';
+	        return _this;
+	    }
+	    Input.prototype.render = function () {
+	        var _this = this;
+	        return (React.createElement("div", { className: login_style_1.css.login },
+	            React.createElement("input", { type: "text", ref: function (element) { return _this.input = element; }, onKeyUp: this.keyUpHandler.bind(this), placeholder: this.placeholder }),
+	            React.createElement("style", null, login_style_1.Style.getStyles())));
+	    };
+	    return Input;
+	}(React.Component));
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = Input;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var FreeStyle = __webpack_require__(8);
+	exports.Style = FreeStyle.create();
+	exports.css = {
+	    login: exports.Style.registerStyle({
+	        position: 'relative',
+	        borderSize: 'border-box',
+	        padding: '10px'
 	    }),
 	};
 

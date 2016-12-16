@@ -24,6 +24,8 @@ io.on('connection', socket => {
 
     socket.on('Login', (name) =>{
         users.login(socket.id, name)
+        const list = messages.getLastMessages(name)
+        socket.emit('LoadMessages', list)
     })
 
     socket.on('Logout', () => {
