@@ -1,5 +1,5 @@
 # Doogly - Chat
-test assignmnt
+test assignment
 
 ```
 git clone https://github.com/GaryGolf/doogly-chat.git
