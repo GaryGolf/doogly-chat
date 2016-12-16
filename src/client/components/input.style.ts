@@ -11,4 +11,9 @@ export const css = {
         padding: '10px',
         bottom: '0px'
     }),
+    users: Style.registerStyle({
+       fontSize: '0.7rem',
+       color: 'blue',
+       cursor: 'pointer'
+    })
 }

@@ -79,7 +79,20 @@
 	                    _this.setState(__assign({}, _this.state, { login: false }));
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
-	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: [] }));
+	                    console.log(payload);
+	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: _this.users }));
+	                    break;
+	                case constants_1.ADD_RECIPIENT:
+	                    if (!_this.name)
+	                        _this.setState(__assign({}, _this.state, { login: true }));
+	                    if (_this.users.indexOf(payload) != -1 || _this.name == payload)
+	                        break;
+	                    _this.users.push(payload);
+	                    _this.forceUpdate();
+	                    break;
+	                case constants_1.REMOVE_RECIPIENT:
+	                    _this.users = _this.users.filter(function (user) { return user != payload; });
+	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.SET_TYPYNG_STATUS:
 	                    // if user is not logged in 
@@ -92,6 +105,7 @@
 	            }
 	        };
 	        _this.socket = Window.prototype.socket = io();
+	        _this.users = [];
 	        var list = [];
 	        var login = false;
 	        _this.state = { list: list, login: login };
@@ -112,8 +126,8 @@
 	        if (this.state.login)
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
-	            React.createElement(messagelist_1.default, { list: this.state.list }),
-	            React.createElement(input_1.default, { onDispatch: this.dispatch })));
+	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),
+	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch })));
 	    };
 	    return DooglyChat;
 	}(React.Component));
@@ -147,6 +161,8 @@
 	exports.GOT_NEW_MESSAGE = 'GOT_NEW_MESSAGE';
 	exports.LOAD_LAST_MESSAGES = 'LOAD_LAST_MESSAGES';
 	exports.LOGIN_USER = 'LOGIN_USER';
+	exports.ADD_RECIPIENT = 'ADD_RECIPIENT';
+	exports.REMOVE_RECIPIENT = 'REMOVE_RECIPIENT';
 
 
 /***/ },
@@ -168,47 +184,16 @@
 	    return t;
 	};
 	var React = __webpack_require__(1);
+	var constants_1 = __webpack_require__(4);
 	var message_1 = __webpack_require__(6);
 	var messagelist_style_1 = __webpack_require__(10);
 	var MessageList = (function (_super) {
 	    __extends(MessageList, _super);
 	    function MessageList(props) {
 	        return _super.call(this, props) || this;
-	        // this.socket = io()
 	    }
-	    MessageList.prototype.componentWillMount = function () {
-	        // get last ten messages from server
-	        // console.log('will')
-	        // this.socket.emit('chat message', 'hello')
-	        // this.socket.on('chat message', (msg: string) => {
-	        //     console.log(msg)
-	        // })
-	    };
-	    MessageList.prototype.componentDidMount = function () {
-	        // // get last 10 messages from server
-	        // this.socket.emit('get last 10 messages',null)
-	        // this.socket.on('get last 10 messages', (list: MessageInterface[]) => {
-	        //     this.setState({list})
-	        // })
-	        // // get new message
-	        // this.socket.on('new message', (message: MessageInterface) => {
-	        //     let list: MessageInterface[] = []
-	        //     //if there is some message with this id, replace it
-	        //     this.state.list.forEach((msg, idx) => {
-	        //         if(msg.id == message.id) {
-	        //             list = [...this.state.list]
-	        //             list[idx] = message
-	        //             this.setState({list})
-	        //             return
-	        //         }
-	        //     })
-	        //     //else push message to list
-	        //     list = [...this.state.list, message]
-	        //     this.setState({list})
-	        // })
-	    };
 	    MessageList.prototype.clickHandler = function (author) {
-	        console.log(author);
+	        this.props.onDispatch(constants_1.ADD_RECIPIENT, author);
 	    };
 	    MessageList.prototype.render = function () {
 	        var _this = this;
@@ -1007,8 +992,7 @@
 	                case 'Enter':
 	                    var message = {
 	                        message: _this.input.value,
-	                        private: _this.checkbox.value,
-	                        author: 'Brodsky'
+	                        private: _this.checkbox.checked
 	                    };
 	                    _this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, message);
 	                    _this.input.value = '';
@@ -1022,6 +1006,9 @@
 	        _this.blurHandler = function (event) {
 	            // !! user stops typing
 	            _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS);
+	        };
+	        _this.clickHandler = function (user) {
+	            _this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
 	        };
 	        // this.socket = io()
 	        _this.placeholder = 'type here';
@@ -1037,7 +1024,14 @@
 	            onFocus: this.focusHandler.bind(this),
 	            onBlur: this.blurHandler.bind(this)
 	        };
+	        var users = this.props.users.map(function (usr, idx) {
+	            return React.createElement("span", { key: idx, onClick: function () { return _this.clickHandler(usr); } },
+	                "@",
+	                usr,
+	                ",");
+	        });
 	        return (React.createElement("div", { className: input_style_1.css.input },
+	            React.createElement("div", { className: input_style_1.css.users }, users),
 	            React.createElement("input", __assign({ type: "text", ref: function (element) { return _this.input = element; } }, handlers, { placeholder: this.placeholder })),
 	            React.createElement("input", { type: "checkbox", value: "", ref: function (element) { return _this.checkbox = element; } }),
 	            "private",
@@ -1063,6 +1057,11 @@
 	        padding: '10px',
 	        bottom: '0px'
 	    }),
+	    users: exports.Style.registerStyle({
+	        fontSize: '0.7rem',
+	        color: 'blue',
+	        cursor: 'pointer'
+	    })
 	};
 
 

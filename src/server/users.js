@@ -18,3 +18,13 @@ exports.getName = function(id) {
     })
     return name
 }
+exports.getId = function(name) {
+
+    for(var i = 0; i < userList.length; i++)
+        if( userList[i].name == name) return userList[i].id
+    return null
+}
+
+exports.getAll = function() {
+    return userList.map(usr => usr)
+}
