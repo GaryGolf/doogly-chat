@@ -14,7 +14,6 @@ interface Props {
 
 export default class Input extends React.Component<Props, State> {
 
-    private socket: SocketIOClient.Socket
     private placeholder: string
     private input: HTMLInputElement
     private checkbox: HTMLInputElement
@@ -22,14 +21,19 @@ export default class Input extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props)  
         
-        // this.socket = io()
         this.placeholder = 'type here'
 
     }
 
-    componentDidMount(){
-        // get last 10 messages from server
+    componentDidUpdate(){
 
+        if(this.props.users.length == 0) {
+            this.checkbox.checked = false
+            this.checkbox.disabled = true
+        } else {
+            this.checkbox.disabled = false
+        }
+            
     }
 
     keyUpHandler = (event: KeyboardEvent) => {
@@ -68,7 +72,7 @@ export default class Input extends React.Component<Props, State> {
         }
 
         const users = this.props.users.map((usr,idx) => {
-        return <span key={idx} onClick={() => this.clickHandler(usr)}>@{usr},</span>
+            return <span key={idx} onClick={() => this.clickHandler(usr)}>@{usr},</span>
         })
 
         return (
@@ -76,7 +80,7 @@ export default class Input extends React.Component<Props, State> {
                 <div className={css.users}>{users}</div>
                 <input type="text" ref={element => this.input = element} 
                      {...handlers} placeholder={this.placeholder}/>
-                <input type="checkbox" value="" ref={element => this.checkbox = element} />
+                <input type="checkbox" ref={element => this.checkbox = element} />
                 private
                 <style>{Style.getStyles()}</style>
             </div>

@@ -1010,12 +1010,17 @@
 	        _this.clickHandler = function (user) {
 	            _this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
 	        };
-	        // this.socket = io()
 	        _this.placeholder = 'type here';
 	        return _this;
 	    }
-	    Input.prototype.componentDidMount = function () {
-	        // get last 10 messages from server
+	    Input.prototype.componentDidUpdate = function () {
+	        if (this.props.users.length == 0) {
+	            this.checkbox.checked = false;
+	            this.checkbox.disabled = true;
+	        }
+	        else {
+	            this.checkbox.disabled = false;
+	        }
 	    };
 	    Input.prototype.render = function () {
 	        var _this = this;
@@ -1033,7 +1038,7 @@
 	        return (React.createElement("div", { className: input_style_1.css.input },
 	            React.createElement("div", { className: input_style_1.css.users }, users),
 	            React.createElement("input", __assign({ type: "text", ref: function (element) { return _this.input = element; } }, handlers, { placeholder: this.placeholder })),
-	            React.createElement("input", { type: "checkbox", value: "", ref: function (element) { return _this.checkbox = element; } }),
+	            React.createElement("input", { type: "checkbox", ref: function (element) { return _this.checkbox = element; } }),
 	            "private",
 	            React.createElement("style", null, input_style_1.Style.getStyles())));
 	    };

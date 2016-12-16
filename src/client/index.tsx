@@ -79,6 +79,7 @@ class DooglyChat extends React.Component<Props, State> {
     }
   
     render(){
+        
         if(this.state.login) return <Login onDispatch={this.dispatch} />
         return (
             <div>
