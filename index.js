@@ -31,6 +31,13 @@ io.on('connection', socket => {
         }
         const list = messages.getLastMessages(name)
         socket.emit('LoadMessages', list)
+        const names = users.getNames()
+        socket.broadcast.emit('UserLogin', names)
+    })
+
+    socket.on('disconnect',() => {
+        const names = users.getNames()
+        socket.broadcast.emit('UserLogout', names)
     })
 
     socket.on('Logout', () => {

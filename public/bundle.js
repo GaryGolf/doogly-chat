@@ -64,8 +64,8 @@
 	var io = __webpack_require__(3);
 	var constants_1 = __webpack_require__(4);
 	var messagelist_1 = __webpack_require__(5);
-	var input_1 = __webpack_require__(11);
-	var login_1 = __webpack_require__(13);
+	var input_1 = __webpack_require__(9);
+	var login_1 = __webpack_require__(11);
 	var DooglyChat = (function (_super) {
 	    __extends(DooglyChat, _super);
 	    function DooglyChat(props) {
@@ -95,9 +95,10 @@
 	                    }
 	                    // should get iMessage
 	                    // if message private new message should be private
-	                    if (_this.users.indexOf(payload) != -1 || _this.name == payload)
+	                    if (_this.users.indexOf(payload.author) != -1 ||
+	                        _this.name == payload.author)
 	                        break;
-	                    _this.users.push(payload);
+	                    _this.users.push(payload.author);
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.REMOVE_RECIPIENT:
@@ -156,13 +157,21 @@
 	                        case 'sent':
 	                            return __assign({}, msg, { status: 'received' });
 	                        case 'received':
-	                        // return {...msg, status: 'read'}
 	                        default:
 	                    }
 	                return msg;
 	            });
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
+	        this.socket.on('UserLogin', function (names) {
+	            //may be I should send whole user list ?
+	        });
+	        this.socket.on('UserLogout', function (names) {
+	        });
+	    };
+	    DooglyChat.prototype.componentDidMount = function () {
+	        //testing features, dont forget to remove
+	        // this.dispatch(LOGIN_USER, 'Kostya')
 	    };
 	    DooglyChat.prototype.render = function () {
 	        if (this.login)
@@ -218,34 +227,44 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var __assign = (this && this.__assign) || Object.assign || function(t) {
-	    for (var s, i = 1, n = arguments.length; i < n; i++) {
-	        s = arguments[i];
-	        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-	            t[p] = s[p];
-	    }
-	    return t;
-	};
 	var React = __webpack_require__(1);
 	var constants_1 = __webpack_require__(4);
-	var message_1 = __webpack_require__(6);
-	var messagelist_style_1 = __webpack_require__(10);
+	var messagelist_style_1 = __webpack_require__(6);
 	var MessageList = (function (_super) {
 	    __extends(MessageList, _super);
 	    function MessageList(props) {
 	        return _super.call(this, props) || this;
 	    }
-	    MessageList.prototype.clickHandler = function (author) {
-	        this.props.onDispatch(constants_1.ADD_RECIPIENT, author);
+	    MessageList.prototype.handleClick = function (author, priv) {
+	        this.props.onDispatch(constants_1.ADD_RECIPIENT, { author: author, private: priv });
+	    };
+	    MessageList.prototype.drawMessage = function (message) {
+	        var _this = this;
+	        var date = new Date(message.date);
+	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+	        var users = message.users.map(function (usr, idx) {
+	            return React.createElement("span", { key: idx, onClick: function () { return _this.handleClick(message.author, message.private); } },
+	                "@",
+	                usr,
+	                ",");
+	        });
+	        return (React.createElement("div", { className: messagelist_style_1.css.message },
+	            React.createElement("div", { className: messagelist_style_1.css.body, onClick: function () { return _this.handleClick(message.author, message.private); } }, message.message),
+	            React.createElement("div", { className: messagelist_style_1.css.details },
+	                React.createElement("span", null, time),
+	                "\u00A0\u00A0",
+	                React.createElement("span", { className: messagelist_style_1.css.author }, message.author),
+	                "\u00A0\u00A0",
+	                React.createElement("span", { className: (message.private) ? messagelist_style_1.css.private : messagelist_style_1.css.users }, users),
+	                "\u00A0\u00A0",
+	                React.createElement("span", null, message.status),
+	                "\u00A0\u00A0"),
+	            React.createElement("style", null, messagelist_style_1.Style.getStyles())));
 	    };
 	    MessageList.prototype.render = function () {
 	        var _this = this;
-	        var list = this.props.list.map(function (msg, idx) {
-	            msg.onclick = _this.clickHandler.bind(_this);
-	            return React.createElement("div", { key: idx },
-	                React.createElement(message_1.default, __assign({}, msg)));
-	        });
-	        return (React.createElement("div", { className: messagelist_style_1.css.messagelist }, list));
+	        var list = this.props.list.map(function (msg, idx) { return React.createElement("div", { key: idx }, _this.drawMessage(msg)); });
+	        return React.createElement("div", { className: messagelist_style_1.css.messagelist }, list);
 	    };
 	    return MessageList;
 	}(React.Component));
@@ -258,67 +277,16 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var React = __webpack_require__(1);
-	var message_style_1 = __webpack_require__(7);
-	var Message = (function (_super) {
-	    __extends(Message, _super);
-	    function Message(props) {
-	        var _this = _super.call(this, props) || this;
-	        // this.socket = io()
-	        if (props.message.length < 30)
-	            _this.message = React.createElement("span", null, props.message);
-	        else
-	            _this.message = (React.createElement("span", null,
-	                _this.props.message.substr(0, 30) + ' ... ',
-	                React.createElement("span", { className: message_style_1.css.more, onClick: _this.moreHandler.bind(_this) }, "more")));
-	        return _this;
-	    }
-	    Message.prototype.clickHandler = function (event) {
-	        this.props.onclick(this.props.author);
-	        // should sent this.props.date
-	        // then get author and private.status from messages
-	    };
-	    Message.prototype.moreHandler = function (event) {
-	        event.stopPropagation();
-	        this.message = React.createElement("span", null, this.props.message);
-	        this.forceUpdate();
-	    };
-	    Message.prototype.render = function () {
-	        var users = this.props.users.map(function (user) { return '@' + user; }).join(',');
-	        var date = new Date(this.props.date);
-	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
-	        var authorcss = (this.props.private) ? message_style_1.css.private : message_style_1.css.author;
-	        return (React.createElement("div", { className: message_style_1.css.message, onClick: this.clickHandler.bind(this) },
-	            React.createElement("div", { className: message_style_1.css.body }, this.message),
-	            React.createElement("div", { className: message_style_1.css.details },
-	                React.createElement("span", { className: authorcss }, this.props.author),
-	                "\u00A0\u00A0",
-	                React.createElement("span", { className: message_style_1.css.users }, users),
-	                "\u00A0\u00A0",
-	                React.createElement("span", null, this.props.status),
-	                "\u00A0\u00A0",
-	                React.createElement("span", null, time)),
-	            React.createElement("style", null, message_style_1.Style.getStyles())));
-	    };
-	    return Message;
-	}(React.Component));
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Message;
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var FreeStyle = __webpack_require__(8);
+	var FreeStyle = __webpack_require__(7);
 	exports.Style = FreeStyle.create();
 	exports.css = {
+	    messagelist: exports.Style.registerStyle({
+	        position: 'relative',
+	        borderSize: 'border-box',
+	        padding: '10px',
+	        width: '100%',
+	        height: '100%'
+	    }),
 	    message: exports.Style.registerStyle({
 	        position: 'relative',
 	        borderSize: 'border-box',
@@ -326,18 +294,19 @@
 	        width: '100%'
 	    }),
 	    body: exports.Style.registerStyle({
-	        // marginRight: '50px',
+	        paddingBottom: '6px',
 	        fontSize: '1.2rem',
 	        cursor: 'pointer'
 	    }),
 	    details: exports.Style.registerStyle({
-	        // marginRight: '50px',
 	        fontSize: '.75rem',
 	        cursor: 'pointer'
 	    }),
-	    author: exports.Style.registerStyle({}),
+	    author: exports.Style.registerStyle({
+	        fontWeight: 'bold'
+	    }),
 	    private: exports.Style.registerStyle({
-	        color: 'red',
+	        color: 'red'
 	    }),
 	    users: exports.Style.registerStyle({
 	        color: 'blue'
@@ -345,12 +314,12 @@
 	    more: exports.Style.registerStyle({
 	        color: 'blue',
 	        cursor: 'pointer'
-	    }),
+	    })
 	};
 
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {"use strict";
@@ -802,10 +771,10 @@
 	}
 	exports.create = create;
 	//# sourceMappingURL=free-style.js.map
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)))
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -991,25 +960,7 @@
 
 
 /***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var FreeStyle = __webpack_require__(8);
-	exports.Style = FreeStyle.create();
-	exports.css = {
-	    messagelist: exports.Style.registerStyle({
-	        position: 'relative',
-	        borderSize: 'border-box',
-	        padding: '10px',
-	        width: '100%',
-	        height: '100%'
-	    }),
-	};
-
-
-/***/ },
-/* 11 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1027,7 +978,7 @@
 	    return t;
 	};
 	var React = __webpack_require__(1);
-	var input_style_1 = __webpack_require__(12);
+	var input_style_1 = __webpack_require__(10);
 	var constants_1 = __webpack_require__(4);
 	var Input = (function (_super) {
 	    __extends(Input, _super);
@@ -1037,8 +988,7 @@
 	        return _this;
 	    }
 	    Input.prototype.componentDidMount = function () {
-	        if (this.props.private)
-	            this.checkbox.checked = true;
+	        // if(this.props.private) this.checkbox.checked = true
 	    };
 	    Input.prototype.componentDidUpdate = function () {
 	        // no recipients, no private message
@@ -1103,11 +1053,11 @@
 
 
 /***/ },
-/* 12 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var FreeStyle = __webpack_require__(8);
+	var FreeStyle = __webpack_require__(7);
 	exports.Style = FreeStyle.create();
 	exports.css = {
 	    input: exports.Style.registerStyle({
@@ -1125,7 +1075,7 @@
 
 
 /***/ },
-/* 13 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1135,7 +1085,7 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var React = __webpack_require__(1);
-	var login_style_1 = __webpack_require__(14);
+	var login_style_1 = __webpack_require__(12);
 	var constants_1 = __webpack_require__(4);
 	var Login = (function (_super) {
 	    __extends(Login, _super);
@@ -1172,11 +1122,11 @@
 
 
 /***/ },
-/* 14 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var FreeStyle = __webpack_require__(8);
+	var FreeStyle = __webpack_require__(7);
 	exports.Style = FreeStyle.create();
 	exports.css = {
 	    login: exports.Style.registerStyle({

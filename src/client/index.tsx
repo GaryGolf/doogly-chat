@@ -35,6 +35,7 @@ class DooglyChat extends React.Component<Props, State> {
 
         const list: iMessage[] = []
         this.state = {list}
+
     }
 
     componentWillMount() {
@@ -64,13 +65,25 @@ class DooglyChat extends React.Component<Props, State> {
                         case 'sent' :
                         return {...msg, status: 'received'}
                         case 'received' :
-                        // return {...msg, status: 'read'}
                         default :
                     }
                 return msg
             })
             this.setState({...this.state, list})
         })
+
+        this.socket.on('UserLogin', (names: string[]) => {
+            //may be I should send whole user list ?
+        })
+
+        this.socket.on('UserLogout', (names: string[]) => {
+
+        })
+    }
+
+    componentDidMount(){
+        //testing features, dont forget to remove
+        // this.dispatch(LOGIN_USER, 'Kostya')
     }
 
     dispatch = (action: string, payload?: any) => {
@@ -99,8 +112,9 @@ class DooglyChat extends React.Component<Props, State> {
                 }
                 // should get iMessage
                 // if message private new message should be private
-                if(this.users.indexOf(payload) != -1 || this.name == payload) break
-                this.users.push(payload)
+                if(this.users.indexOf(payload.author) != -1 || 
+                    this.name == payload.author) break
+                this.users.push(payload.author)
                 this.forceUpdate()
                 break
             case REMOVE_RECIPIENT :
@@ -130,12 +144,14 @@ class DooglyChat extends React.Component<Props, State> {
   
     render(){
         
+
         if(this.login) return <Login onDispatch={this.dispatch} />
+
         return (
             <div>
                 <MessageList list={this.state.list}
                     onDispatch={this.dispatch}/>
-                <Input users={this.users} 
+                <Input users={this.users}
                     onDispatch={this.dispatch}/>
             </div>
         )

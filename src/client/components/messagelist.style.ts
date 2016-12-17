@@ -12,4 +12,39 @@ export const css = {
         width: '100%',
         height: '100%'
     }),
+    
+     message: Style.registerStyle({
+        position: 'relative',
+        borderSize: 'border-box',
+        padding: '10px',
+        width: '100%'
+    }),
+
+    body: Style.registerStyle({ 
+        paddingBottom: '6px',
+        fontSize: '1.2rem',
+        cursor: 'pointer'        
+    }),
+
+    details: Style.registerStyle({ 
+        fontSize: '.75rem',
+        cursor: 'pointer'        
+    }),
+
+    author: Style.registerStyle({ 
+        fontWeight: 'bold'
+    }),
+
+    private: Style.registerStyle({ 
+        color: 'red'
+    }),
+
+    users: Style.registerStyle({ 
+        color: 'blue'
+    }),
+
+    more: Style.registerStyle({ 
+        color: 'blue',
+        cursor: 'pointer'
+    })
 }

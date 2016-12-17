@@ -9,7 +9,7 @@ import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT,
 interface State {}
 interface Props {
     users: string[],
-    private: boolean,
+    // private: boolean,
     onDispatch: any
 }
 
@@ -26,7 +26,7 @@ export default class Input extends React.Component<Props, State> {
         
     }
     componentDidMount(){
-        if(this.props.private) this.checkbox.checked = true
+        // if(this.props.private) this.checkbox.checked = true
     }
 
     componentDidUpdate(){

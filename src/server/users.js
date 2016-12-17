@@ -5,6 +5,9 @@ exports.login = function (id, name) {
     userList.push({id, name})
     return true
 }
+exports.getNames = function() {
+    return userList.map(x => x.name)
+}
 
 exports.logout = function(id) {
     userList = userList.filter(user => id != user.id)

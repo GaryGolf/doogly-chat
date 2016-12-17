@@ -9,7 +9,6 @@ interface State {}
 interface Props {
     list: iMessage[],
     onDispatch: any
-
 }
 
 
@@ -19,22 +18,39 @@ export default class MessageList extends React.Component<Props, State> {
         super(props)  
     }
 
-   
+    handleClick(author: string, priv: boolean){
 
-    clickHandler(author: string) {
-        this.props.onDispatch(ADD_RECIPIENT, author)
+        this.props.onDispatch(ADD_RECIPIENT, {author, private:priv})
     }
 
-
-    render() {
-        const list = this.props.list.map((msg, idx) => {
-            msg.onclick = this.clickHandler.bind(this)
-            return <div key={idx}><Message {...msg}/></div>
+    drawMessage(message: iMessage) {
+        
+        const date = new Date(message.date)
+        const time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()
+        const users = message.users.map((usr, idx) => {
+            return <span key={idx} onClick={() => this.handleClick(message.author, 
+                message.private)}>@{usr},</span>
         })
+
         return (
-            <div className={css.messagelist}>
-                {list}
+            <div className={css.message}>
+                <div className={css.body} onClick={() => this.handleClick(message.author, 
+                        message.private)}>{message.message}</div>
+                <div className={css.details}>
+                    <span>{time}</span>&nbsp;&nbsp;
+                    <span className={css.author}>{message.author}</span>&nbsp;&nbsp;
+                    <span className={(message.private) ? css.private : css.users}>{users}</span>&nbsp;&nbsp;
+                    <span>{message.status}</span>&nbsp;&nbsp;
+                </div>
+                <style>{Style.getStyles()}</style>
             </div>
         )
+    }
+
+    render() {
+
+        const list = this.props.list.map((msg, idx) => <div key={idx}>{this.drawMessage(msg)}</div>)
+
+        return <div className={css.messagelist}>{list}</div>
     }
 }
