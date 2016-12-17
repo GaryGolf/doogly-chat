@@ -2,9 +2,9 @@ export interface iMessage {
     author: string, 
     users: string[], 
     date: number, 
-    message: string, 
-    status: string, 
+    message: string,  
     private: boolean,
+    status?: string,
     onclick?: any
 }
 

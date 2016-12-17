@@ -21,12 +21,14 @@ io.on('connection', socket => {
     socket.on('LoadMessages', (msg) => {
         const list = messages.getLastMessages()
         socket.emit('LoadMessages', list)
-        //console.log(io.clients().connected)
     })
 
-    socket.on('Login', (name) =>{
-        users.login(socket.id, name)
-        console.log(users.getId(name))
+    socket.on('Login', (name) => {
+        // if name already exist choose another one
+        if(!users.login(socket.id, name)){
+            socket.emit('ChangeLoginName', name)   
+            return 
+        }
         const list = messages.getLastMessages(name)
         socket.emit('LoadMessages', list)
     })
@@ -35,12 +37,11 @@ io.on('connection', socket => {
         users.logout(socket.id)
     })
 
-    socket.on('NewMessage', (message) => {
+    socket.on('NewMessage', (message, callback) => {
         
-        message.author = users.getName(socket.id)
-        if(!message.author) return // not found
         message.date = Date.now()
-        message.status = 'sent'
+        message.author = users.getName(socket.id)
+
         messages.push(message)
 
         if(message.private){
@@ -48,14 +49,19 @@ io.on('connection', socket => {
                 const room = users.getId(usr)
                 if(room) io.to(room).emit('NewMessage', message)
             })
-        } else {
-            socket.broadcast.emit('NewMessage',message)
-        }
-         socket.emit('NewMessage', message)
+        } else socket.broadcast.emit('NewMessage', message)
+
+        message.status = 'sent'
+        callback(message)
     })
 
     socket.on('MessageReceived', (date) => {
-        socket.broadcast.emit('MessageReceived', date)
+        // find message
+        const message = messages.getMessage(date)
+        // find author
+        const id = users.getId(message.author)
+        // send notification abt changing status
+        socket.to(id).emit('MessageReceived', date)
     })
 
     socket.on('Typing', (message) => {

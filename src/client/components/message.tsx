@@ -35,6 +35,8 @@ export default class Message extends React.Component<Props, State> {
 
     clickHandler(event: MouseEvent) {
         this.props.onclick(this.props.author)
+        // should sent this.props.date
+        // then get author and private.status from messages
     }
 
     moreHandler(event: MouseEvent) {
@@ -52,16 +54,14 @@ export default class Message extends React.Component<Props, State> {
             
         return (
             <div className={css.message} onClick={this.clickHandler.bind(this)}>
-                <header>
-                    <span className={authorcss}>{this.props.author}</span>
+                <div className={css.body}>{this.message}</div>
+                <div className={css.details}>
+                    <span className={authorcss}>{this.props.author}</span>&nbsp;&nbsp;
+                    <span className={css.users}>{users}</span>&nbsp;&nbsp;
                     <span>{this.props.status}</span>&nbsp;&nbsp;
                     <span>{time}</span>
-                </header>
-                <div>
-                    <span className={css.users}>{users}</span>&nbsp;&nbsp;
-                    {this.message}
                 </div>
-                   <style>{Style.getStyles()}</style>
+                <style>{Style.getStyles()}</style>
             </div>
         )
     }

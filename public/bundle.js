@@ -79,7 +79,13 @@
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
-	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: _this.users }));
+	                    var users = _this.users;
+	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: users }), function (message) {
+	                        if (message) {
+	                            var list = _this.state.list.concat([message]);
+	                            _this.setState(__assign({}, _this.state, { list: list }));
+	                        }
+	                    });
 	                    break;
 	                case constants_1.ADD_RECIPIENT:
 	                    if (!_this.name) {
@@ -87,6 +93,8 @@
 	                        _this.forceUpdate();
 	                        break;
 	                    }
+	                    // should get iMessage
+	                    // if message private new message should be private
 	                    if (_this.users.indexOf(payload) != -1 || _this.name == payload)
 	                        break;
 	                    _this.users.push(payload);
@@ -103,15 +111,14 @@
 	                        _this.forceUpdate();
 	                        break;
 	                    }
-	                    console.log('typing');
 	                    var message = {
 	                        private: payload,
 	                        users: _this.users
 	                    };
-	                    _this.socket.emit('Typing', message);
+	                    // this.socket.emit('Typing', message)
 	                    break;
 	                case constants_1.REMOVE_TYPING_STATUS:
-	                    _this.socket.emit('RemoveTyping');
+	                    // this.socket.emit('RemoveTyping')
 	                    break;
 	                default:
 	                    break;
@@ -126,6 +133,7 @@
 	    }
 	    DooglyChat.prototype.componentWillMount = function () {
 	        var _this = this;
+	        // initial message load
 	        this.socket.emit('LoadMessages', null);
 	        this.socket.on('LoadMessages', function (list) {
 	            _this.setState(__assign({}, _this.state, { list: list }));
@@ -133,12 +141,24 @@
 	        this.socket.on('NewMessage', function (message) {
 	            var list = _this.state.list.concat([message]);
 	            _this.setState(__assign({}, _this.state, { list: list }));
+	            // notify author that message has received
 	            _this.socket.emit('MessageReceived', message.date);
+	        });
+	        this.socket.on('ChangeLoginName', function (name) {
+	            console.log(name);
+	            _this.login = true;
+	            _this.forceUpdate();
 	        });
 	        this.socket.on('MessageReceived', function (date) {
 	            var list = _this.state.list.map(function (msg) {
 	                if (msg.date == date)
-	                    return __assign({}, msg, { status: 'received' });
+	                    switch (msg.status) {
+	                        case 'sent':
+	                            return __assign({}, msg, { status: 'received' });
+	                        case 'received':
+	                        // return {...msg, status: 'read'}
+	                        default:
+	                    }
 	                return msg;
 	            });
 	            _this.setState(__assign({}, _this.state, { list: list }));
@@ -260,6 +280,8 @@
 	    }
 	    Message.prototype.clickHandler = function (event) {
 	        this.props.onclick(this.props.author);
+	        // should sent this.props.date
+	        // then get author and private.status from messages
 	    };
 	    Message.prototype.moreHandler = function (event) {
 	        event.stopPropagation();
@@ -272,15 +294,15 @@
 	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
 	        var authorcss = (this.props.private) ? message_style_1.css.private : message_style_1.css.author;
 	        return (React.createElement("div", { className: message_style_1.css.message, onClick: this.clickHandler.bind(this) },
-	            React.createElement("header", null,
+	            React.createElement("div", { className: message_style_1.css.body }, this.message),
+	            React.createElement("div", { className: message_style_1.css.details },
 	                React.createElement("span", { className: authorcss }, this.props.author),
+	                "\u00A0\u00A0",
+	                React.createElement("span", { className: message_style_1.css.users }, users),
+	                "\u00A0\u00A0",
 	                React.createElement("span", null, this.props.status),
 	                "\u00A0\u00A0",
 	                React.createElement("span", null, time)),
-	            React.createElement("div", null,
-	                React.createElement("span", { className: message_style_1.css.users }, users),
-	                "\u00A0\u00A0",
-	                this.message),
 	            React.createElement("style", null, message_style_1.Style.getStyles())));
 	    };
 	    return Message;
@@ -300,21 +322,22 @@
 	    message: exports.Style.registerStyle({
 	        position: 'relative',
 	        borderSize: 'border-box',
-	        // display: 'table-cell',
-	        // verticalAlign: 'middle',
 	        padding: '10px',
 	        width: '100%'
 	    }),
-	    author: exports.Style.registerStyle({
-	        marginRight: '50px',
-	        fontSize: '2rem',
+	    body: exports.Style.registerStyle({
+	        // marginRight: '50px',
+	        fontSize: '1.2rem',
 	        cursor: 'pointer'
 	    }),
-	    private: exports.Style.registerStyle({
-	        marginRight: '50px',
-	        fontSize: '2rem',
-	        color: 'red',
+	    details: exports.Style.registerStyle({
+	        // marginRight: '50px',
+	        fontSize: '.75rem',
 	        cursor: 'pointer'
+	    }),
+	    author: exports.Style.registerStyle({}),
+	    private: exports.Style.registerStyle({
+	        color: 'red',
 	    }),
 	    users: exports.Style.registerStyle({
 	        color: 'blue'
@@ -1010,34 +1033,15 @@
 	    __extends(Input, _super);
 	    function Input(props) {
 	        var _this = _super.call(this, props) || this;
-	        _this.keyUpHandler = function (event) {
-	            switch (event.key) {
-	                case 'Enter':
-	                    var message = {
-	                        message: _this.input.value,
-	                        private: _this.checkbox.checked
-	                    };
-	                    _this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, message);
-	                    _this.input.value = '';
-	                    break;
-	                default:
-	                    _this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, _this.checkbox.checked);
-	            }
-	        };
-	        _this.focusHandler = function (event) {
-	            // this.props.onDispatch(SET_FOCUS)
-	        };
-	        _this.blurHandler = function (event) {
-	            // !! user stops typing
-	            _this.props.onDispatch(constants_1.REMOVE_TYPING_STATUS);
-	        };
-	        _this.clickHandler = function (user) {
-	            _this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
-	        };
 	        _this.placeholder = 'type here';
 	        return _this;
 	    }
+	    Input.prototype.componentDidMount = function () {
+	        if (this.props.private)
+	            this.checkbox.checked = true;
+	    };
 	    Input.prototype.componentDidUpdate = function () {
+	        // no recipients, no private message
 	        if (this.props.users.length == 0) {
 	            this.checkbox.checked = false;
 	            this.checkbox.disabled = true;
@@ -1046,15 +1050,41 @@
 	            this.checkbox.disabled = false;
 	        }
 	    };
+	    Input.prototype.handleKeyUp = function (event) {
+	        switch (event.key) {
+	            case 'Enter':
+	                if (this.input.value == '')
+	                    return;
+	                var message = {
+	                    message: this.input.value,
+	                    private: this.checkbox.checked
+	                };
+	                this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, message);
+	                this.input.value = '';
+	                break;
+	            default:
+	                this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, this.checkbox.checked);
+	        }
+	    };
+	    Input.prototype.handleFocus = function (event) {
+	        this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, this.checkbox.checked);
+	    };
+	    Input.prototype.handleBlur = function (event) {
+	        // !! user stops typing
+	        this.props.onDispatch(constants_1.REMOVE_TYPING_STATUS);
+	    };
+	    Input.prototype.handleClick = function (user) {
+	        this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
+	    };
 	    Input.prototype.render = function () {
 	        var _this = this;
 	        var handlers = {
-	            onKeyUp: this.keyUpHandler.bind(this),
-	            onFocus: this.focusHandler.bind(this),
-	            onBlur: this.blurHandler.bind(this)
+	            onKeyUp: this.handleKeyUp.bind(this),
+	            onFocus: this.handleFocus.bind(this),
+	            onBlur: this.handleBlur.bind(this)
 	        };
 	        var users = this.props.users.map(function (usr, idx) {
-	            return React.createElement("span", { key: idx, onClick: function () { return _this.clickHandler(usr); } },
+	            return React.createElement("span", { key: idx, onClick: function () { return _this.handleClick(usr); } },
 	                "@",
 	                usr,
 	                ",");
@@ -1107,39 +1137,38 @@
 	var React = __webpack_require__(1);
 	var login_style_1 = __webpack_require__(14);
 	var constants_1 = __webpack_require__(4);
-	var Input = (function (_super) {
-	    __extends(Input, _super);
-	    function Input(props) {
-	        var _this = _super.call(this, props) || this;
-	        _this.keyUpHandler = function (event) {
-	            switch (event.key) {
-	                case 'Enter':
-	                    var name_1 = _this.input.value;
-	                    if (name_1 == '')
-	                        return;
-	                    _this.props.onDispatch(constants_1.LOGIN_USER, name_1);
-	                    localStorage['nikname'] = name_1;
-	                    break;
-	                default:
-	            }
-	        };
-	        _this.placeholder = 'enter your nikname';
-	        return _this;
+	var Login = (function (_super) {
+	    __extends(Login, _super);
+	    function Login(props) {
+	        return _super.call(this, props) || this;
 	    }
-	    Input.prototype.componentDidMount = function () {
+	    Login.prototype.componentDidMount = function () {
+	        var nickname = localStorage['nickname'] || '';
 	        this.input.focus();
-	        this.input.value = localStorage['nikname'] || '';
+	        this.input.value = nickname;
 	    };
-	    Input.prototype.render = function () {
+	    Login.prototype.handleKeyUp = function (event) {
+	        switch (event.key) {
+	            case 'Enter':
+	                var name_1 = this.input.value;
+	                if (name_1 == '')
+	                    return;
+	                this.props.onDispatch(constants_1.LOGIN_USER, name_1);
+	                localStorage['nickname'] = name_1;
+	                break;
+	            default:
+	        }
+	    };
+	    Login.prototype.render = function () {
 	        var _this = this;
 	        return (React.createElement("div", { className: login_style_1.css.login },
-	            React.createElement("input", { type: "text", ref: function (element) { return _this.input = element; }, onKeyUp: this.keyUpHandler.bind(this), placeholder: this.placeholder }),
+	            React.createElement("input", { type: "text", ref: function (element) { return _this.input = element; }, onKeyUp: this.handleKeyUp.bind(this), placeholder: "enter you nickname" }),
 	            React.createElement("style", null, login_style_1.Style.getStyles())));
 	    };
-	    return Input;
+	    return Login;
 	}(React.Component));
 	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Input;
+	exports.default = Login;
 
 
 /***/ },

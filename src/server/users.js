@@ -1,7 +1,9 @@
 const userList = []
 
-exports.login =  function (id, name) {
+exports.login = function (id, name) {
+    if(userList.some(usr => usr.name == name)) return false
     userList.push({id, name})
+    return true
 }
 
 exports.logout = function(id) {

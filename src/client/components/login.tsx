@@ -6,46 +6,41 @@ import {LOGIN_USER} from './constants'
 
 
 interface State {}
-interface Props {
-    onDispatch: any
-}
+interface Props { onDispatch: any }
 
-
-export default class Input extends React.Component<Props, State> {
+export default class Login extends React.Component<Props, State> {
 
     private placeholder: string
     private input: HTMLInputElement
 
     constructor(props: Props) {
         super(props)  
-        
-        this.placeholder = 'enter your nikname'
-
     }
 
     componentDidMount(){
+        const nickname = localStorage['nickname'] || ''
         this.input.focus()
-        this.input.value = localStorage['nikname'] || ''
+        this.input.value = nickname
     }
 
-    keyUpHandler = (event: KeyboardEvent) => {
+    handleKeyUp(event: KeyboardEvent) {
         
         switch(event.key){
             case 'Enter' :
                 const name =  this.input.value
                 if(name == '') return
                 this.props.onDispatch(LOGIN_USER, name)
-                localStorage['nikname'] = name
+                localStorage['nickname'] = name
                 break
-            default:
-        }    
+            default :
+        }   
     }
 
     render() {
         return (
             <div className={css.login}>
                 <input type="text" ref={element => this.input = element} 
-                    onKeyUp={this.keyUpHandler.bind(this)} placeholder={this.placeholder}/>
+                    onKeyUp={this.handleKeyUp.bind(this)} placeholder="enter you nickname"/>
                 <style>{Style.getStyles()}</style>
             </div>
         )

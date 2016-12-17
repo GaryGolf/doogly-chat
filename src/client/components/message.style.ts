@@ -8,21 +8,23 @@ export const css = {
     message: Style.registerStyle({
         position: 'relative',
         borderSize: 'border-box',
-        // display: 'table-cell',
-        // verticalAlign: 'middle',
         padding: '10px',
         width: '100%'
     }),
-    author: Style.registerStyle({ 
-        marginRight: '50px',
-        fontSize: '2rem',
+    body: Style.registerStyle({ 
+        // marginRight: '50px',
+        fontSize: '1.2rem',
         cursor: 'pointer'        
     }),
-    private: Style.registerStyle({ 
-        marginRight: '50px',
-        fontSize: '2rem',
-        color: 'red',
+    details: Style.registerStyle({ 
+        // marginRight: '50px',
+        fontSize: '.75rem',
         cursor: 'pointer'        
+    }),
+    author: Style.registerStyle({ 
+    }),
+    private: Style.registerStyle({ 
+        color: 'red',
     }),
     users: Style.registerStyle({ 
         color: 'blue'

@@ -38,18 +38,35 @@ class DooglyChat extends React.Component<Props, State> {
     }
 
     componentWillMount() {
+        // initial message load
         this.socket.emit('LoadMessages', null)
         this.socket.on('LoadMessages', (list: iMessage[]) => {
             this.setState({...this.state, list})
         })
+
         this.socket.on('NewMessage', (message: iMessage) => {
             const list = [...this.state.list, message]
             this.setState({...this.state, list})
+            // notify author that message has received
             this.socket.emit('MessageReceived', message.date)
         })
+
+        this.socket.on('ChangeLoginName', (name: string) => {
+            console.log(name)
+            this.login = true
+            this.forceUpdate()
+        })
+
         this.socket.on('MessageReceived', (date: number) => {
             const list = this.state.list.map(msg => {
-                if(msg.date == date) return {...msg, status: 'received'}
+                if(msg.date == date) 
+                    switch(msg.status) {
+                        case 'sent' :
+                        return {...msg, status: 'received'}
+                        case 'received' :
+                        // return {...msg, status: 'read'}
+                        default :
+                    }
                 return msg
             })
             this.setState({...this.state, list})
@@ -65,7 +82,14 @@ class DooglyChat extends React.Component<Props, State> {
                 this.forceUpdate()
                 break
             case GOT_NEW_MESSAGE :
-                this.socket.emit('NewMessage', {...payload, users: this.users})
+                const users = this.users
+                this.socket.emit('NewMessage', {...payload, users},
+                 (message: iMessage) => {
+                    if(message)  {
+                        const list = [...this.state.list, message]
+                        this.setState({...this.state, list})
+                    }
+                })
                 break
             case ADD_RECIPIENT :
                 if(!this.name) {
@@ -73,6 +97,8 @@ class DooglyChat extends React.Component<Props, State> {
                     this.forceUpdate()
                     break
                 }
+                // should get iMessage
+                // if message private new message should be private
                 if(this.users.indexOf(payload) != -1 || this.name == payload) break
                 this.users.push(payload)
                 this.forceUpdate()
@@ -88,15 +114,14 @@ class DooglyChat extends React.Component<Props, State> {
                     this.forceUpdate()
                     break
                 }
-                console.log('typing')
                 const message = {
                     private: payload,
                     users: this.users
                 } 
-                this.socket.emit('Typing', message)
+                // this.socket.emit('Typing', message)
                 break
             case REMOVE_TYPING_STATUS :
-                this.socket.emit('RemoveTyping')
+                // this.socket.emit('RemoveTyping')
                 break
             default:
                 break

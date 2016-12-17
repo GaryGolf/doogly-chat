@@ -2,15 +2,16 @@ import * as React from 'react'
 import * as io from 'socket.io-client'
 
 import {Style, css} from './input.style'
-import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT, REMOVE_TYPING_STATUS} from './constants'
+import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT, 
+    REMOVE_TYPING_STATUS} from './constants'
 
 
 interface State {}
 interface Props {
     users: string[],
+    private: boolean,
     onDispatch: any
 }
-
 
 export default class Input extends React.Component<Props, State> {
 
@@ -22,11 +23,15 @@ export default class Input extends React.Component<Props, State> {
         super(props)  
         
         this.placeholder = 'type here'
-
+        
+    }
+    componentDidMount(){
+        if(this.props.private) this.checkbox.checked = true
     }
 
     componentDidUpdate(){
 
+        // no recipients, no private message
         if(this.props.users.length == 0) {
             this.checkbox.checked = false
             this.checkbox.disabled = true
@@ -36,10 +41,11 @@ export default class Input extends React.Component<Props, State> {
             
     }
 
-    keyUpHandler = (event: KeyboardEvent) => {
+    handleKeyUp(event: KeyboardEvent) {
         
         switch(event.key){
             case 'Enter' :
+                if(this.input.value == '') return
                 const message = {
                     message: this.input.value,
                     private: this.checkbox.checked
@@ -51,14 +57,16 @@ export default class Input extends React.Component<Props, State> {
                 this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
         }    
     }
-    focusHandler = (event: FocusEvent) => {
-        // this.props.onDispatch(SET_FOCUS)
+    handleFocus(event: FocusEvent) {
+        this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
     }
-    blurHandler = (event: FocusEvent) => {
+
+    handleBlur(event: FocusEvent) {
         // !! user stops typing
         this.props.onDispatch(REMOVE_TYPING_STATUS)
     }
-    clickHandler = (user: string) => {
+
+    handleClick(user: string) {
         
         this.props.onDispatch(REMOVE_RECIPIENT,user)
     }
@@ -66,13 +74,13 @@ export default class Input extends React.Component<Props, State> {
     render() {
 
         const handlers = {
-            onKeyUp: this.keyUpHandler.bind(this),
-            onFocus:this.focusHandler.bind(this),
-            onBlur: this.blurHandler.bind(this)
+            onKeyUp: this.handleKeyUp.bind(this),
+            onFocus: this.handleFocus.bind(this),
+            onBlur:  this.handleBlur.bind(this)
         }
 
         const users = this.props.users.map((usr,idx) => {
-            return <span key={idx} onClick={() => this.clickHandler(usr)}>@{usr},</span>
+            return <span key={idx} onClick={() => this.handleClick(usr)}>@{usr},</span>
         })
 
         return (

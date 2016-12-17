@@ -5,7 +5,6 @@ const  messages  = [
                 users: ['Nastya','Max Lancaster'],
                 date: 1481877130452,
                 message: 'Конечно, мы бы хотели получить от вас в ответ на это тестовое задание 100% реализацию требований, но это вовсе не обязательно, если вы понимаете, что охватить весь предложенный функционал в разумные сроки у вас не получится (в виду любых возможных обстоятельств), выберите комфортный для вас набор из списка требований — уверяем, это никаких не скажется на конечной оценке задания;',
-                status: 'typing',
                 private: true
             },
             {
@@ -13,7 +12,6 @@ const  messages  = [
                 users: [],
                 date: 1481877140452,
                 message: 'Let\'s go out, guys',
-                status: 'sending',
                 private: false
             },
             {
@@ -21,7 +19,6 @@ const  messages  = [
                 users: ['Boris Brodsky'],
                 date: 1481877140552,
                 message: 'Kazeol !!',
-                status: 'read',
                 private: false
             }
         ]
@@ -53,3 +50,7 @@ exports.push = function(message) {
         messages.push(message)
     } 
 }
+exports.getMessage = function(date) {
+    return messages.find(msg => msg.date == date)
+}
+
