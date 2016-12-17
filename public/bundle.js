@@ -75,8 +75,7 @@
 	                case constants_1.LOGIN_USER:
 	                    _this.socket.emit('Login', payload);
 	                    _this.name = payload;
-	                    _this.login = false;
-	                    _this.forceUpdate();
+	                    _this.setState(__assign({}, _this.state, { login: false }));
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    var users = _this.users;
@@ -89,8 +88,7 @@
 	                    break;
 	                case constants_1.ADD_RECIPIENT:
 	                    if (!_this.name) {
-	                        _this.login = true;
-	                        _this.forceUpdate();
+	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                        break;
 	                    }
 	                    // should get iMessage
@@ -108,8 +106,7 @@
 	                case constants_1.SET_TYPYNG_STATUS:
 	                    // if user is not logged in 
 	                    if (!_this.name) {
-	                        _this.login = true;
-	                        _this.forceUpdate();
+	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                        break;
 	                    }
 	                    var message = {
@@ -127,9 +124,9 @@
 	        };
 	        _this.socket = Window.prototype.socket = io();
 	        _this.users = [];
-	        _this.login = false;
 	        var list = [];
-	        _this.state = { list: list };
+	        var login = false;
+	        _this.state = { list: list, login: login };
 	        return _this;
 	    }
 	    DooglyChat.prototype.componentWillMount = function () {
@@ -145,10 +142,9 @@
 	            // notify author that message has received
 	            _this.socket.emit('MessageReceived', message.date);
 	        });
+	        // this nickname is already exist
 	        this.socket.on('ChangeLoginName', function (name) {
-	            console.log(name);
-	            _this.login = true;
-	            _this.forceUpdate();
+	            _this.setState(__assign({}, _this.state, { login: true }));
 	        });
 	        this.socket.on('MessageReceived', function (date) {
 	            var list = _this.state.list.map(function (msg) {
@@ -174,7 +170,7 @@
 	        // this.dispatch(LOGIN_USER, 'Kostya')
 	    };
 	    DooglyChat.prototype.render = function () {
-	        if (this.login)
+	        if (this.state.login)
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
 	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),

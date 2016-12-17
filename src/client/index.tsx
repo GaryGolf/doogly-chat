@@ -15,7 +15,8 @@ import Login from './components/login'
 
 interface Props {}
 interface State {
-    list: iMessage[]
+    list: iMessage[],
+    login: boolean
 }
 
 class DooglyChat extends React.Component<Props, State> {
@@ -23,7 +24,6 @@ class DooglyChat extends React.Component<Props, State> {
     private socket: SocketIOClient.Socket
     private name: string
     private users: string[]
-    private login: boolean
 
 
     constructor(props: Props) {
@@ -31,10 +31,10 @@ class DooglyChat extends React.Component<Props, State> {
         
         this.socket = Window.prototype.socket = io()
         this.users = []
-        this.login = false
 
         const list: iMessage[] = []
-        this.state = {list}
+        const login = false
+        this.state = {list , login}
 
     }
 
@@ -51,11 +51,9 @@ class DooglyChat extends React.Component<Props, State> {
             // notify author that message has received
             this.socket.emit('MessageReceived', message.date)
         })
-
+        // this nickname is already exist
         this.socket.on('ChangeLoginName', (name: string) => {
-            console.log(name)
-            this.login = true
-            this.forceUpdate()
+            this.setState({...this.state, login: true})
         })
 
         this.socket.on('MessageReceived', (date: number) => {
@@ -86,13 +84,14 @@ class DooglyChat extends React.Component<Props, State> {
         // this.dispatch(LOGIN_USER, 'Kostya')
     }
 
+
+
     dispatch = (action: string, payload?: any) => {
         switch(action){
             case LOGIN_USER :
                 this.socket.emit('Login', payload)
                 this.name = payload
-                this.login = false
-                this.forceUpdate()
+                this.setState({...this.state, login: false})
                 break
             case GOT_NEW_MESSAGE :
                 const users = this.users
@@ -106,8 +105,7 @@ class DooglyChat extends React.Component<Props, State> {
                 break
             case ADD_RECIPIENT :
                 if(!this.name) {
-                    this.login = true
-                    this.forceUpdate()
+                    this.setState({...this.state, login: true})
                     break
                 }
                 // should get iMessage
@@ -124,8 +122,7 @@ class DooglyChat extends React.Component<Props, State> {
             case SET_TYPYNG_STATUS :
                 // if user is not logged in 
                 if(!this.name) { 
-                    this.login = true
-                    this.forceUpdate()
+                    this.setState({...this.state, login: true})
                     break
                 }
                 const message = {
@@ -145,7 +142,7 @@ class DooglyChat extends React.Component<Props, State> {
     render(){
         
 
-        if(this.login) return <Login onDispatch={this.dispatch} />
+        if(this.state.login) return <Login onDispatch={this.dispatch} />
 
         return (
             <div>
