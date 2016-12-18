@@ -62,7 +62,7 @@ class DooglyChat extends React.Component<Props, State> {
             const list = [...this.state.list, message]
             this.setState({...this.state, list})
             // notify author that message has received
-            this.socket.emit('MessageReceived', message.date)
+            this.socket.emit('message_received', message.date)
         })
 
         this.socket.on('update_message', (message: iMessage) => {
@@ -72,31 +72,24 @@ class DooglyChat extends React.Component<Props, State> {
         })
 
         this.socket.on('remove_message', (date: number) => {
-            console.log('remove_message')
             const list = this.state.list.filter(msg => msg.date != date)
             this.setState({...this.state, list})
         })
 
-        // this nickname is already exist
-        this.socket.on('ChangeLoginName', (name: string) => {
-            this.setState({...this.state, login: true})
-        })
-
-        this.socket.on('MessageReceived', (date: number) => {
+        this.socket.on('message_received', (date: number) => {
             const list = this.state.list.map(msg => {
                 if(msg.date == date) 
                     switch(msg.status) {
                         case 'sent' :
-                        return {...msg, status: 'received'}
+                            return {...msg, status: 'received'}
                         case 'received' :
+                            return {...msg, status: 'read'}
                         default :
                     }
                 return msg
             })
             this.setState({...this.state, list})
         })
-
-    
     }
 
     componentDidMount(){
@@ -140,16 +133,11 @@ class DooglyChat extends React.Component<Props, State> {
                     this.setState({...this.state, login: true})
                     break
                 }
-                // should get iMessage
-                // if message private new message should be private
-
-     
-
                 if(this.users.indexOf(payload.user) != -1 || 
                     this.name == payload.user) break
                 this.users.push(payload.user)
-                if(payload.private) this.priv = true
-console.log(this.priv)                
+                // if message private new message should be private
+                if(payload.private) this.priv = true           
                 this.forceUpdate()
                 break
             case REMOVE_RECIPIENT :
@@ -166,7 +154,6 @@ console.log(this.priv)
                 this.socket.emit('typing', {...payload, users: this.users })
                 break
             case REMOVE_TYPING_STATUS :
-                console.log('cancel_typing')
                 this.socket.emit('cancel_typing')
                 break
             default:

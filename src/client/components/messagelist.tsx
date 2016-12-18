@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as io from 'socket.io-client'
+
 import {iMessage, ADD_RECIPIENT} from './constants'
 import {Style, css} from './messagelist.style'
 

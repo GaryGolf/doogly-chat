@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as io from 'socket.io-client'
 
 import {Style, css} from './input.style'
 import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT, 

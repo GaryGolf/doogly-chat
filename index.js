@@ -25,9 +25,11 @@ io.on('connection', socket => {
     socket.on('login_user', (name, callback) => {
         // if name already exist send error
         const ok = users.login(socket.id, name)
-        const list = messages.getLastMessages(name)
-        callback(ok, list)
-        socket.broadcast.emit('user_login', name)
+        if(ok) {
+            const list = messages.getLastMessages(name)
+            socket.broadcast.emit('user_login', name)
+            callback(ok, list)
+        } else callback(false, null)
     })
 
     socket.on('disconnect',() => {
@@ -99,14 +101,14 @@ io.on('connection', socket => {
         }
     })
 
-    socket.on('MessageReceived', (date) => {
+    socket.on('message_received', (date) => {
         // find message
         const message = messages.getMessage(date)
         if(!message) return
         // find author
         const id = users.getId(message.author)
         // send notification abt changing status
-        if(id) socket.to(id).emit('MessageReceived', date)
+        if(id) socket.to(id).emit('message_received', date)
     })
 
 })

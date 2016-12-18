@@ -99,15 +99,13 @@
 	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                        break;
 	                    }
-	                    // should get iMessage
-	                    // if message private new message should be private
 	                    if (_this.users.indexOf(payload.user) != -1 ||
 	                        _this.name == payload.user)
 	                        break;
 	                    _this.users.push(payload.user);
+	                    // if message private new message should be private
 	                    if (payload.private)
 	                        _this.priv = true;
-	                    console.log(_this.priv);
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.REMOVE_RECIPIENT:
@@ -125,7 +123,6 @@
 	                    _this.socket.emit('typing', __assign({}, payload, { users: _this.users }));
 	                    break;
 	                case constants_1.REMOVE_TYPING_STATUS:
-	                    console.log('cancel_typing');
 	                    _this.socket.emit('cancel_typing');
 	                    break;
 	                default:
@@ -155,7 +152,7 @@
 	            var list = _this.state.list.concat([message]);
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	            // notify author that message has received
-	            _this.socket.emit('MessageReceived', message.date);
+	            _this.socket.emit('message_received', message.date);
 	        });
 	        this.socket.on('update_message', function (message) {
 	            var list = _this.state.list.filter(function (msg) { return msg.date != message.date; });
@@ -163,21 +160,17 @@
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	        this.socket.on('remove_message', function (date) {
-	            console.log('remove_message');
 	            var list = _this.state.list.filter(function (msg) { return msg.date != date; });
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
-	        // this nickname is already exist
-	        this.socket.on('ChangeLoginName', function (name) {
-	            _this.setState(__assign({}, _this.state, { login: true }));
-	        });
-	        this.socket.on('MessageReceived', function (date) {
+	        this.socket.on('message_received', function (date) {
 	            var list = _this.state.list.map(function (msg) {
 	                if (msg.date == date)
 	                    switch (msg.status) {
 	                        case 'sent':
 	                            return __assign({}, msg, { status: 'received' });
 	                        case 'received':
+	                            return __assign({}, msg, { status: 'read' });
 	                        default:
 	                    }
 	                return msg;
