@@ -64,6 +64,12 @@ class DooglyChat extends React.Component<Props, State> {
             this.socket.emit('MessageReceived', message.date)
         })
 
+        this.socket.on('update_message', (message: iMessage) => {
+            var list = this.state.list.filter(msg => msg.date != message.date)
+            list.push(message)
+            this.setState({...this.state, list})
+        })
+
         this.socket.on('remove_message', (date: number) => {
             console.log('remove_message')
             const list = this.state.list.filter(msg => msg.date != date)
@@ -119,6 +125,7 @@ class DooglyChat extends React.Component<Props, State> {
                 break
             case GOT_NEW_MESSAGE :
                 const users = this.users
+                this.socket.emit('cancel_typing')
                 this.socket.emit('new_message', {...payload, users},
                  (message: iMessage) => {
                     if(message)  {
@@ -149,11 +156,7 @@ class DooglyChat extends React.Component<Props, State> {
                     this.setState({...this.state, login: true})
                     break
                 }
-                
-                payload.users = this.users,
-                this.socket.emit('typing', payload, (typing: iMessage) => {
-                    this.typing = typing
-                })
+                this.socket.emit('typing', {...payload, users: this.users })
                 break
             case REMOVE_TYPING_STATUS :
                 console.log('cancel_typing')

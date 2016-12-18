@@ -86,6 +86,7 @@
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    var users = _this.users;
+	                    _this.socket.emit('cancel_typing');
 	                    _this.socket.emit('new_message', __assign({}, payload, { users: users }), function (message) {
 	                        if (message) {
 	                            var list = _this.state.list.concat([message]);
@@ -116,10 +117,7 @@
 	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                        break;
 	                    }
-	                    payload.users = _this.users,
-	                        _this.socket.emit('typing', payload, function (typing) {
-	                            _this.typing = typing;
-	                        });
+	                    _this.socket.emit('typing', __assign({}, payload, { users: _this.users }));
 	                    break;
 	                case constants_1.REMOVE_TYPING_STATUS:
 	                    console.log('cancel_typing');
@@ -152,6 +150,11 @@
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	            // notify author that message has received
 	            _this.socket.emit('MessageReceived', message.date);
+	        });
+	        this.socket.on('update_message', function (message) {
+	            var list = _this.state.list.filter(function (msg) { return msg.date != message.date; });
+	            list.push(message);
+	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	        this.socket.on('remove_message', function (date) {
 	            console.log('remove_message');
@@ -1015,20 +1018,23 @@
 	            case 'Enter':
 	                if (this.input.value == '')
 	                    return;
-	                var message = {
+	                this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, {
 	                    message: this.input.value,
 	                    private: this.checkbox.checked
-	                };
-	                this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, message);
+	                });
 	                this.input.value = '';
 	                break;
 	            default:
+	                this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, {
+	                    private: this.checkbox.checked,
+	                    message: this.input.value
+	                });
 	        }
 	    };
 	    Input.prototype.handleFocus = function (event) {
 	        var message = {
 	            private: this.checkbox.checked,
-	            meaasge: this.input.value
+	            meaasge: '...'
 	        };
 	        this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, message);
 	    };

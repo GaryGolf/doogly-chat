@@ -54,31 +54,37 @@ io.on('connection', socket => {
         callback(message)
     })
 
-    socket.on('typing', (message, callback) => {
+    socket.on('typing', (message) => {
 
+        const name = users.getName(socket.id)
+        // unauthorised user can not typing
+        if(!name) return
+        
+        var passMessage
+        const saved = messages.getTypingMessage(name)
 
-        if(!users.getName(socket.id)) {
-            callback(message)
-            return
+        if(!saved) { // new
+            message.date = Date.now()
+            message.author = users.getName(socket.id)
+            message.status = 'typing'
+            messages.push(message)
+            passMessage = 'new_message'
+
+        } else {  // update
+            saved.message = message.message
+            saved.private = message.private
+            message = saved
+            messages.updateMessage(message)
+            passMessage = 'update_message'
         }
-        if(message.date) {
-           callback(messages.getMessage(message.date))
-           return
-        } 
-        message.date = Date.now()
-        message.author = users.getName(socket.id)
-        message.message = 'typing...'
-        message.status = 'typing'
-        messages.push(message)
-
+        // if message is private, send message to recipients only
         if(message.private){
             message.users.forEach(usr => {
                 const room = users.getId(usr)
-                if(room) io.to(room).emit('new_message', message)
+                if(room) io.to(room).emit(passMessage, message)
             })
-        } else socket.broadcast.emit('new_message', message)
+        } else socket.broadcast.emit(passMessage, message)
 
-        callback(message)
     })
 
     socket.on('cancel_typing', () => {
@@ -96,16 +102,13 @@ io.on('connection', socket => {
     socket.on('MessageReceived', (date) => {
         // find message
         const message = messages.getMessage(date)
+        if(!message) return
         // find author
         const id = users.getId(message.author)
         // send notification abt changing status
-        socket.to(id).emit('MessageReceived', date)
+        if(id) socket.to(id).emit('MessageReceived', date)
     })
 
-    socket.on('Typing', (message) => {
-        
-      
-    })
 })
 
 app.use(express.static(path.join(__dirname,'public')))

@@ -46,21 +46,23 @@ export default class Input extends React.Component<Props, State> {
         switch(event.key){
             case 'Enter' :
                 if(this.input.value == '') return
-                const message = {
+                this.props.onDispatch(GOT_NEW_MESSAGE,{
                     message: this.input.value,
                     private: this.checkbox.checked
-                }
-                this.props.onDispatch(GOT_NEW_MESSAGE, message)
+                })
                 this.input.value = ''
                 break
             default:
-                // this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
+                this.props.onDispatch(SET_TYPYNG_STATUS, { 
+                    private: this.checkbox.checked , 
+                    message: this.input.value
+                })
         }    
     }
     handleFocus(event: FocusEvent) {
         const message = {
             private: this.checkbox.checked,
-            meaasge: this.input.value
+            meaasge: '...'
         }
         this.props.onDispatch(SET_TYPYNG_STATUS, message)
     }

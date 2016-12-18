@@ -63,3 +63,7 @@ exports.removeMessage = function(date){
     messages.splice(idx,1)
 }
 
+exports.updateMessage = function(message) {
+    const idx = messages.findIndex(msg => msg.date == message.date)
+    messages[idx] = message
+}
