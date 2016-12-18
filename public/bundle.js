@@ -89,10 +89,18 @@
 	                    _this.socket.emit('cancel_typing');
 	                    _this.socket.emit('new_message', __assign({}, payload, { users: users }), function (message) {
 	                        if (message) {
-	                            var list = _this.state.list.concat([message]);
-	                            _this.setState(__assign({}, _this.state, { list: list }));
+	                            var list_1 = _this.state.list.map(function (m) { return m; });
+	                            // remove last message           
+	                            list_1.pop();
+	                            list_1.push(message);
+	                            _this.setState(__assign({}, _this.state, { list: list_1 }));
 	                        }
 	                    });
+	                    // push message with status sending
+	                    var date = Date.now();
+	                    var status_1 = 'sending';
+	                    var list = _this.state.list.concat([__assign({}, payload, { users: users, date: date, status: status_1 })]);
+	                    _this.setState(__assign({}, _this.state, { list: list }));
 	                    break;
 	                case constants_1.ADD_RECIPIENT:
 	                    if (!_this.name) {
@@ -188,7 +196,7 @@
 	    DooglyChat.prototype.render = function () {
 	        if (this.state.login)
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
-	        return (React.createElement("div", null,
+	        return (React.createElement("div", { className: "container" },
 	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),
 	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch, priv: this.priv }),
 	            React.createElement(userlist_1.default, { list: this.state.users, onDispatch: this.dispatch })));
@@ -248,13 +256,17 @@
 	    function MessageList(props) {
 	        return _super.call(this, props) || this;
 	    }
+	    MessageList.prototype.componentDidUpdate = function () {
+	        var last = this.messagelist.children.length - 1;
+	        this.messagelist.children.item(last).scrollIntoView();
+	    };
 	    MessageList.prototype.handleClick = function (user, priv) {
 	        this.props.onDispatch(constants_1.ADD_RECIPIENT, { user: user, private: priv });
 	    };
 	    MessageList.prototype.drawMessage = function (message) {
 	        var _this = this;
 	        var date = new Date(message.date);
-	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+	        var time = date.toLocaleTimeString();
 	        var users = message.users.map(function (usr, idx) {
 	            return React.createElement("span", { key: idx, onClick: function () { return _this.handleClick(usr, message.private); } },
 	                "@",
@@ -276,7 +288,7 @@
 	    MessageList.prototype.render = function () {
 	        var _this = this;
 	        var list = this.props.list.map(function (msg, idx) { return React.createElement("div", { key: idx }, _this.drawMessage(msg)); });
-	        return React.createElement("div", { className: messagelist_style_1.css.messagelist }, list);
+	        return React.createElement("div", { className: messagelist_style_1.css.messagelist, ref: function (element) { return _this.messagelist = element; } }, list);
 	    };
 	    return MessageList;
 	}(React.Component));
@@ -297,13 +309,14 @@
 	        borderSize: 'border-box',
 	        padding: '10px',
 	        width: '100%',
-	        height: '100%'
+	        height: '70%',
+	        overflow: 'scroll'
 	    }),
 	    message: exports.Style.registerStyle({
 	        position: 'relative',
 	        borderSize: 'border-box',
 	        padding: '10px',
-	        width: '100%'
+	        width: '100%',
 	    }),
 	    body: exports.Style.registerStyle({
 	        paddingBottom: '6px',
@@ -311,7 +324,7 @@
 	        cursor: 'pointer'
 	    }),
 	    details: exports.Style.registerStyle({
-	        fontSize: '.7rem',
+	        fontSize: '.9rem',
 	        cursor: 'pointer'
 	    }),
 	    author: exports.Style.registerStyle({
@@ -1045,6 +1058,15 @@
 	    Input.prototype.handleClick = function (user) {
 	        this.props.onDispatch(constants_1.REMOVE_RECIPIENT, user);
 	    };
+	    Input.prototype.handleSubmit = function () {
+	        if (this.input.value == '')
+	            return;
+	        this.props.onDispatch(constants_1.GOT_NEW_MESSAGE, {
+	            message: this.input.value,
+	            private: this.checkbox.checked
+	        });
+	        this.input.value = '';
+	    };
 	    Input.prototype.render = function () {
 	        var _this = this;
 	        var handlers = {
@@ -1060,9 +1082,10 @@
 	        });
 	        return (React.createElement("div", { className: input_style_1.css.input },
 	            React.createElement("div", { className: input_style_1.css.users }, users),
-	            React.createElement("input", __assign({ type: "text", ref: function (element) { return _this.input = element; } }, handlers, { placeholder: this.placeholder })),
+	            React.createElement("input", __assign({ type: "text", ref: function (element) { return _this.input = element; }, className: "form-control" }, handlers, { placeholder: this.placeholder })),
+	            React.createElement("button", { className: "btn btn-default navbar-btn", onClick: this.handleSubmit.bind(this) }, "Submit"),
+	            "\u00A0private",
 	            React.createElement("input", { type: "checkbox", ref: function (element) { return _this.checkbox = element; } }),
-	            "private",
 	            React.createElement("style", null, input_style_1.Style.getStyles())));
 	    };
 	    return Input;
@@ -1080,10 +1103,11 @@
 	exports.Style = FreeStyle.create();
 	exports.css = {
 	    input: exports.Style.registerStyle({
-	        position: 'relative',
+	        position: 'absolute',
 	        borderSize: 'border-box',
-	        padding: '10px',
-	        bottom: '0px'
+	        minWidth: '280px',
+	        padding: '3px',
+	        bottom: '10px'
 	    }),
 	    users: exports.Style.registerStyle({
 	        fontSize: '0.7rem',
@@ -1128,10 +1152,19 @@
 	            default:
 	        }
 	    };
+	    Login.prototype.handleSubmit = function () {
+	        var name = this.input.value;
+	        if (name == '')
+	            return;
+	        this.props.onDispatch(constants_1.LOGIN_USER, name);
+	        localStorage['nickname'] = name;
+	    };
 	    Login.prototype.render = function () {
 	        var _this = this;
 	        return (React.createElement("div", { className: login_style_1.css.login },
+	            React.createElement("h3", null, " please login "),
 	            React.createElement("input", { type: "text", ref: function (element) { return _this.input = element; }, onKeyUp: this.handleKeyUp.bind(this), placeholder: "enter you nickname" }),
+	            React.createElement("button", { className: "btn btn-default", onClick: this.handleSubmit.bind(this) }, "Submit"),
 	            React.createElement("style", null, login_style_1.Style.getStyles())));
 	    };
 	    return Login;
@@ -1149,8 +1182,13 @@
 	exports.Style = FreeStyle.create();
 	exports.css = {
 	    login: exports.Style.registerStyle({
+	        '.form-group': {},
 	        position: 'relative',
 	        borderSize: 'border-box',
+	        width: '200px',
+	        margin: 'auto',
+	        marginTop: '10%',
+	        textAlign: 'center',
 	        padding: '10px'
 	    }),
 	};
@@ -1205,7 +1243,8 @@
 	        borderSize: 'border-box',
 	        float: 'left',
 	        padding: '10px',
-	        width: '10%'
+	        cursor: 'pointer',
+	        owerflow: 'scroll'
 	    })
 	};
 

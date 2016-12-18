@@ -77,6 +77,16 @@ export default class Input extends React.Component<Props, State> {
         this.props.onDispatch(REMOVE_RECIPIENT,user)
     }
 
+    handleSubmit() {
+
+        if(this.input.value == '') return
+        this.props.onDispatch(GOT_NEW_MESSAGE,{
+            message: this.input.value,
+            private: this.checkbox.checked
+        })
+        this.input.value = ''
+    }
+
     render() {
 
         const handlers = {
@@ -93,9 +103,11 @@ export default class Input extends React.Component<Props, State> {
             <div className={css.input}>
                 <div className={css.users}>{users}</div>
                 <input type="text" ref={element => this.input = element} 
-                     {...handlers} placeholder={this.placeholder}/>
+                    className="form-control" {...handlers} placeholder={this.placeholder}/>
+                <button className="btn btn-default navbar-btn" 
+                    onClick={this.handleSubmit.bind(this)}>Submit</button>
+                    &nbsp;private
                 <input type="checkbox" ref={element => this.checkbox = element} />
-                private
                 <style>{Style.getStyles()}</style>
             </div>
         )

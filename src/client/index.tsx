@@ -117,17 +117,27 @@ class DooglyChat extends React.Component<Props, State> {
                         }
                 })
                 break
+
             case GOT_NEW_MESSAGE :
                 const users = this.users
                 this.socket.emit('cancel_typing')
                 this.socket.emit('new_message', {...payload, users},
                  (message: iMessage) => {
                     if(message)  {
-                        const list = [...this.state.list, message]
+                        let list = this.state.list.map(m => m)
+                        // remove last message           
+                        list.pop()
+                        list.push(message)
                         this.setState({...this.state, list})
                     }
                 })
+                // push message with status sending
+                const date = Date.now()
+                const status = 'sending'
+                const list: iMessage[] = [...this.state.list,{...payload, users, date, status}]
+                this.setState({...this.state, list})
                 break
+
             case ADD_RECIPIENT :
                 if(!this.name) {
                     this.setState({...this.state, login: true})
@@ -140,11 +150,13 @@ class DooglyChat extends React.Component<Props, State> {
                 if(payload.private) this.priv = true           
                 this.forceUpdate()
                 break
+
             case REMOVE_RECIPIENT :
                 this.users = this.users.filter(user => user != payload)
                 if(this.users.length == 0) this.priv = false
                 this.forceUpdate()
                 break
+
             case SET_TYPYNG_STATUS :
                 // if user is not logged in 
                 if(!this.name) { 
@@ -153,6 +165,7 @@ class DooglyChat extends React.Component<Props, State> {
                 }
                 this.socket.emit('typing', {...payload, users: this.users })
                 break
+
             case REMOVE_TYPING_STATUS :
                 this.socket.emit('cancel_typing')
                 break
@@ -167,7 +180,7 @@ class DooglyChat extends React.Component<Props, State> {
         if(this.state.login) return <Login onDispatch={this.dispatch} />
 
         return (
-            <div>
+            <div className="container">
                 <MessageList list={this.state.list}
                     onDispatch={this.dispatch}/>
                 <Input users={this.users}

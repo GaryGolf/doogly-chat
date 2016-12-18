@@ -10,14 +10,15 @@ export const css = {
         borderSize: 'border-box',  
         padding: '10px',
         width: '100%',
-        height: '100%'
+        height: '70%',
+        overflow: 'scroll'
     }),
     
      message: Style.registerStyle({
         position: 'relative',
         borderSize: 'border-box',
         padding: '10px',
-        width: '100%'
+        width: '100%',
     }),
 
     body: Style.registerStyle({ 
@@ -27,7 +28,7 @@ export const css = {
     }),
 
     details: Style.registerStyle({ 
-        fontSize: '.7rem',
+        fontSize: '.9rem',
         cursor: 'pointer'        
     }),
 

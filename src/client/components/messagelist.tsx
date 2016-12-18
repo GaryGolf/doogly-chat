@@ -13,8 +13,15 @@ interface Props {
 
 export default class MessageList extends React.Component<Props, State> {
 
+    private messagelist: HTMLDivElement
+
     constructor(props: Props) {
         super(props)  
+    }
+
+    componentDidUpdate(){
+        const last = this.messagelist.children.length -1
+        this.messagelist.children.item(last).scrollIntoView()
     }
 
     handleClick(user: string, priv: boolean){
@@ -25,7 +32,7 @@ export default class MessageList extends React.Component<Props, State> {
     drawMessage(message: iMessage) {
         
         const date = new Date(message.date)
-        const time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()
+        const time = date.toLocaleTimeString()
         const users = message.users.map((usr, idx) => {
             return <span key={idx} onClick={() => this.handleClick(usr, 
                 message.private)}>@{usr},</span>
@@ -50,6 +57,6 @@ export default class MessageList extends React.Component<Props, State> {
 
         const list = this.props.list.map((msg, idx) => <div key={idx}>{this.drawMessage(msg)}</div>)
 
-        return <div className={css.messagelist}>{list}</div>
+        return <div className={css.messagelist} ref={element => this.messagelist = element}>{list}</div>
     }
 }
