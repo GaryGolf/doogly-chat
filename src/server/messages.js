@@ -1,5 +1,5 @@
 const users = require('./users')
-const  messages  = [
+var messages  = [
             {
                 author: 'Boss',
                 users: ['Max'],
@@ -45,8 +45,9 @@ exports.getTypingMessage = function(name){
 }
 
 exports.removeMessage = function(date){
-    const idx = messages.findIndex(msg => msg.date == date)
-    messages.splice(idx,1)
+    messages = messages.filter(msg => msg.date != date)
+    // const idx = messages.findIndex(msg => msg.date == date)
+    // messages.splice(idx,1)
 }
 
 exports.updateMessage = function(message) {
