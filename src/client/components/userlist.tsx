@@ -1,7 +1,6 @@
 import * as React from 'react'
-import * as io from 'socket.io-client'
-import {iMessage, ADD_RECIPIENT} from './constants'
 
+import {iMessage, ADD_RECIPIENT} from './constants'
 import {Style, css} from './userlist.style'
 
 
@@ -21,18 +20,17 @@ export default class UserList extends React.Component<Props, State> {
    
 
     handleClick(user: string) {
-        this.props.onDispatch(1, user)
+        this.props.onDispatch(ADD_RECIPIENT,{user})
     }
 
     render() {
-        const list = this.props.list.map((usr, idx) => {
-            return <div key={idx} 
-                onClick={() => this.handleClick(usr)}>{usr}</div>
-        })
-        return (
-            <div className={css.userlist}>
-                {list}
-            </div>
-        )
+        
+        const list = this.props.list.map((usr, idx) => 
+            <div key={idx} onClick={() => this.handleClick(usr)}>{usr}</div>)
+        
+        return (<div className={css.userlist}>
+                    {list}
+                    <style>{Style.getStyles()}</style>
+                </div>)
     }
 }

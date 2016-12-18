@@ -66,6 +66,7 @@
 	var messagelist_1 = __webpack_require__(5);
 	var input_1 = __webpack_require__(9);
 	var login_1 = __webpack_require__(11);
+	var userlist_1 = __webpack_require__(13);
 	var DooglyChat = (function (_super) {
 	    __extends(DooglyChat, _super);
 	    function DooglyChat(props) {
@@ -73,13 +74,19 @@
 	        _this.dispatch = function (action, payload) {
 	            switch (action) {
 	                case constants_1.LOGIN_USER:
-	                    _this.socket.emit('Login', payload);
-	                    _this.name = payload;
-	                    _this.setState(__assign({}, _this.state, { login: false }));
+	                    _this.socket.emit('login_user', payload, function (ok, list) {
+	                        if (ok) {
+	                            _this.name = payload;
+	                            _this.setState(__assign({}, _this.state, { list: list, login: false }));
+	                        }
+	                        else {
+	                            _this.setState(__assign({}, _this.state, { login: true }));
+	                        }
+	                    });
 	                    break;
 	                case constants_1.GOT_NEW_MESSAGE:
 	                    var users = _this.users;
-	                    _this.socket.emit('NewMessage', __assign({}, payload, { users: users }), function (message) {
+	                    _this.socket.emit('new_message', __assign({}, payload, { users: users }), function (message) {
 	                        if (message) {
 	                            var list = _this.state.list.concat([message]);
 	                            _this.setState(__assign({}, _this.state, { list: list }));
@@ -93,10 +100,10 @@
 	                    }
 	                    // should get iMessage
 	                    // if message private new message should be private
-	                    if (_this.users.indexOf(payload.author) != -1 ||
-	                        _this.name == payload.author)
+	                    if (_this.users.indexOf(payload.user) != -1 ||
+	                        _this.name == payload.user)
 	                        break;
-	                    _this.users.push(payload.author);
+	                    _this.users.push(payload.user);
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.REMOVE_RECIPIENT:
@@ -109,14 +116,14 @@
 	                        _this.setState(__assign({}, _this.state, { login: true }));
 	                        break;
 	                    }
-	                    var message = {
-	                        private: payload,
-	                        users: _this.users
-	                    };
-	                    // this.socket.emit('Typing', message)
+	                    payload.users = _this.users,
+	                        _this.socket.emit('typing', payload, function (typing) {
+	                            _this.typing = typing;
+	                        });
 	                    break;
 	                case constants_1.REMOVE_TYPING_STATUS:
-	                    // this.socket.emit('RemoveTyping')
+	                    console.log('cancel_typing');
+	                    _this.socket.emit('cancel_typing');
 	                    break;
 	                default:
 	                    break;
@@ -126,21 +133,30 @@
 	        _this.users = [];
 	        var list = [];
 	        var login = false;
-	        _this.state = { list: list, login: login };
+	        var users = [];
+	        _this.state = { list: list, login: login, users: users };
 	        return _this;
 	    }
 	    DooglyChat.prototype.componentWillMount = function () {
 	        var _this = this;
-	        // initial message load
-	        this.socket.emit('LoadMessages', null);
-	        this.socket.on('LoadMessages', function (list) {
-	            _this.setState(__assign({}, _this.state, { list: list }));
+	        this.socket.on('user_login', function (name) {
+	            var users = _this.state.users.concat([name]);
+	            _this.setState(__assign({}, _this.state, { users: users }));
 	        });
-	        this.socket.on('NewMessage', function (message) {
+	        this.socket.on('user_logout', function (name) {
+	            var users = _this.state.users.filter(function (usr) { return usr != name; });
+	            _this.setState(__assign({}, _this.state, { users: users }));
+	        });
+	        this.socket.on('new_message', function (message) {
 	            var list = _this.state.list.concat([message]);
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	            // notify author that message has received
 	            _this.socket.emit('MessageReceived', message.date);
+	        });
+	        this.socket.on('remove_message', function (date) {
+	            console.log('remove_message');
+	            var list = _this.state.list.filter(function (msg) { return msg.date != date; });
+	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
 	        // this nickname is already exist
 	        this.socket.on('ChangeLoginName', function (name) {
@@ -159,22 +175,21 @@
 	            });
 	            _this.setState(__assign({}, _this.state, { list: list }));
 	        });
-	        this.socket.on('UserLogin', function (names) {
-	            //may be I should send whole user list ?
-	        });
-	        this.socket.on('UserLogout', function (names) {
-	        });
 	    };
 	    DooglyChat.prototype.componentDidMount = function () {
-	        //testing features, dont forget to remove
-	        // this.dispatch(LOGIN_USER, 'Kostya')
+	        var _this = this;
+	        // initial messages and users load
+	        this.socket.emit('init', null, function (list, users) {
+	            _this.setState(__assign({}, _this.state, { list: list, users: users }));
+	        });
 	    };
 	    DooglyChat.prototype.render = function () {
 	        if (this.state.login)
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
 	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),
-	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch })));
+	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch }),
+	            React.createElement(userlist_1.default, { list: this.state.users, onDispatch: this.dispatch })));
 	    };
 	    return DooglyChat;
 	}(React.Component));
@@ -231,15 +246,15 @@
 	    function MessageList(props) {
 	        return _super.call(this, props) || this;
 	    }
-	    MessageList.prototype.handleClick = function (author, priv) {
-	        this.props.onDispatch(constants_1.ADD_RECIPIENT, { author: author, private: priv });
+	    MessageList.prototype.handleClick = function (user, priv) {
+	        this.props.onDispatch(constants_1.ADD_RECIPIENT, { user: user, private: priv });
 	    };
 	    MessageList.prototype.drawMessage = function (message) {
 	        var _this = this;
 	        var date = new Date(message.date);
 	        var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
 	        var users = message.users.map(function (usr, idx) {
-	            return React.createElement("span", { key: idx, onClick: function () { return _this.handleClick(message.author, message.private); } },
+	            return React.createElement("span", { key: idx, onClick: function () { return _this.handleClick(usr, message.private); } },
 	                "@",
 	                usr,
 	                ",");
@@ -251,10 +266,9 @@
 	                "\u00A0\u00A0",
 	                React.createElement("span", { className: messagelist_style_1.css.author }, message.author),
 	                "\u00A0\u00A0",
-	                React.createElement("span", { className: (message.private) ? messagelist_style_1.css.private : messagelist_style_1.css.users }, users),
-	                "\u00A0\u00A0",
 	                React.createElement("span", null, message.status),
-	                "\u00A0\u00A0"),
+	                "\u00A0\u00A0",
+	                React.createElement("div", { className: (message.private) ? messagelist_style_1.css.private : messagelist_style_1.css.users }, users)),
 	            React.createElement("style", null, messagelist_style_1.Style.getStyles())));
 	    };
 	    MessageList.prototype.render = function () {
@@ -295,7 +309,7 @@
 	        cursor: 'pointer'
 	    }),
 	    details: exports.Style.registerStyle({
-	        fontSize: '.75rem',
+	        fontSize: '.7rem',
 	        cursor: 'pointer'
 	    }),
 	    author: exports.Style.registerStyle({
@@ -1009,11 +1023,14 @@
 	                this.input.value = '';
 	                break;
 	            default:
-	                this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, this.checkbox.checked);
 	        }
 	    };
 	    Input.prototype.handleFocus = function (event) {
-	        this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, this.checkbox.checked);
+	        var message = {
+	            private: this.checkbox.checked,
+	            meaasge: this.input.value
+	        };
+	        this.props.onDispatch(constants_1.SET_TYPYNG_STATUS, message);
 	    };
 	    Input.prototype.handleBlur = function (event) {
 	        // !! user stops typing
@@ -1130,6 +1147,60 @@
 	        borderSize: 'border-box',
 	        padding: '10px'
 	    }),
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(1);
+	var constants_1 = __webpack_require__(4);
+	var userlist_style_1 = __webpack_require__(14);
+	var UserList = (function (_super) {
+	    __extends(UserList, _super);
+	    function UserList(props) {
+	        return _super.call(this, props) || this;
+	    }
+	    UserList.prototype.handleClick = function (user) {
+	        this.props.onDispatch(constants_1.ADD_RECIPIENT, { user: user });
+	    };
+	    UserList.prototype.render = function () {
+	        var _this = this;
+	        var list = this.props.list.map(function (usr, idx) {
+	            return React.createElement("div", { key: idx, onClick: function () { return _this.handleClick(usr); } }, usr);
+	        });
+	        return (React.createElement("div", { className: userlist_style_1.css.userlist },
+	            list,
+	            React.createElement("style", null, userlist_style_1.Style.getStyles())));
+	    };
+	    return UserList;
+	}(React.Component));
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = UserList;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var FreeStyle = __webpack_require__(7);
+	exports.Style = FreeStyle.create();
+	exports.css = {
+	    userlist: exports.Style.registerStyle({
+	        position: 'relative',
+	        borderSize: 'border-box',
+	        float: 'left',
+	        padding: '10px',
+	        width: '10%'
+	    })
 	};
 
 

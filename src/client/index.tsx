@@ -11,12 +11,17 @@ import { iMessage, SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, LOAD_LAST_MESSAGES,
 import MessageList from './components/messagelist'
 import Input from './components/input'
 import Login from './components/login'
+import UserList from './components/userlist'
 
 
 interface Props {}
 interface State {
+    // messages
     list: iMessage[],
-    login: boolean
+    // login mode switch
+    login: boolean,
+    // chat clients
+    users: string[]
 }
 
 class DooglyChat extends React.Component<Props, State> {
@@ -24,6 +29,7 @@ class DooglyChat extends React.Component<Props, State> {
     private socket: SocketIOClient.Socket
     private name: string
     private users: string[]
+    private typing: iMessage
 
 
     constructor(props: Props) {
@@ -33,24 +39,37 @@ class DooglyChat extends React.Component<Props, State> {
         this.users = []
 
         const list: iMessage[] = []
-        const login = false
-        this.state = {list , login}
+        const login: boolean = false
+        const users: string[] = []
+        this.state = {list , login, users}
 
     }
 
     componentWillMount() {
-        // initial message load
-        this.socket.emit('LoadMessages', null)
-        this.socket.on('LoadMessages', (list: iMessage[]) => {
-            this.setState({...this.state, list})
+        
+         this.socket.on('user_login', (name: string) => {
+            const users = [...this.state.users, name]
+            this.setState({...this.state, users})
         })
 
-        this.socket.on('NewMessage', (message: iMessage) => {
+        this.socket.on('user_logout', (name: string) => {
+            const users = this.state.users.filter(usr => usr != name)
+            this.setState({...this.state, users})
+        })
+
+        this.socket.on('new_message', (message: iMessage) => {
             const list = [...this.state.list, message]
             this.setState({...this.state, list})
             // notify author that message has received
             this.socket.emit('MessageReceived', message.date)
         })
+
+        this.socket.on('remove_message', (date: number) => {
+            console.log('remove_message')
+            const list = this.state.list.filter(msg => msg.date != date)
+            this.setState({...this.state, list})
+        })
+
         // this nickname is already exist
         this.socket.on('ChangeLoginName', (name: string) => {
             this.setState({...this.state, login: true})
@@ -70,32 +89,37 @@ class DooglyChat extends React.Component<Props, State> {
             this.setState({...this.state, list})
         })
 
-        this.socket.on('UserLogin', (names: string[]) => {
-            //may be I should send whole user list ?
-        })
-
-        this.socket.on('UserLogout', (names: string[]) => {
-
-        })
+    
     }
 
     componentDidMount(){
-        //testing features, dont forget to remove
-        // this.dispatch(LOGIN_USER, 'Kostya')
+        // initial messages and users load
+        this.socket.emit('init', null, 
+            (list: iMessage[], users: string[]) =>{
+                this.setState({...this.state, list, users})
+        })
     }
 
 
 
     dispatch = (action: string, payload?: any) => {
+
         switch(action){
+
             case LOGIN_USER :
-                this.socket.emit('Login', payload)
-                this.name = payload
-                this.setState({...this.state, login: false})
+                this.socket.emit('login_user', payload,
+                    (ok: boolean, list: iMessage[]) => {
+                        if(ok) { 
+                            this.name = payload
+                            this.setState({...this.state, list, login: false})
+                        } else { 
+                            this.setState({...this.state, login: true})
+                        }
+                })
                 break
             case GOT_NEW_MESSAGE :
                 const users = this.users
-                this.socket.emit('NewMessage', {...payload, users},
+                this.socket.emit('new_message', {...payload, users},
                  (message: iMessage) => {
                     if(message)  {
                         const list = [...this.state.list, message]
@@ -110,9 +134,9 @@ class DooglyChat extends React.Component<Props, State> {
                 }
                 // should get iMessage
                 // if message private new message should be private
-                if(this.users.indexOf(payload.author) != -1 || 
-                    this.name == payload.author) break
-                this.users.push(payload.author)
+                if(this.users.indexOf(payload.user) != -1 || 
+                    this.name == payload.user) break
+                this.users.push(payload.user)
                 this.forceUpdate()
                 break
             case REMOVE_RECIPIENT :
@@ -125,14 +149,15 @@ class DooglyChat extends React.Component<Props, State> {
                     this.setState({...this.state, login: true})
                     break
                 }
-                const message = {
-                    private: payload,
-                    users: this.users
-                } 
-                // this.socket.emit('Typing', message)
+                
+                payload.users = this.users,
+                this.socket.emit('typing', payload, (typing: iMessage) => {
+                    this.typing = typing
+                })
                 break
             case REMOVE_TYPING_STATUS :
-                // this.socket.emit('RemoveTyping')
+                console.log('cancel_typing')
+                this.socket.emit('cancel_typing')
                 break
             default:
                 break
@@ -150,6 +175,7 @@ class DooglyChat extends React.Component<Props, State> {
                     onDispatch={this.dispatch}/>
                 <Input users={this.users}
                     onDispatch={this.dispatch}/>
+                <UserList list={this.state.users} onDispatch={this.dispatch}/>
             </div>
         )
     }

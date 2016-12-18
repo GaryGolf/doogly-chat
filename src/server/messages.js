@@ -54,3 +54,12 @@ exports.getMessage = function(date) {
     return messages.find(msg => msg.date == date)
 }
 
+exports.getTypingMessage = function(name){
+    return messages.find(msg => msg.author == name && msg.status == 'typing')
+}
+
+exports.removeMessage = function(date){
+    const idx = messages.findIndex(msg => msg.date == date)
+    messages.splice(idx,1)
+}
+

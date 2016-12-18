@@ -27,7 +27,7 @@ export const css = {
     }),
 
     details: Style.registerStyle({ 
-        fontSize: '.75rem',
+        fontSize: '.7rem',
         cursor: 'pointer'        
     }),
 

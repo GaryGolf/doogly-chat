@@ -54,11 +54,15 @@ export default class Input extends React.Component<Props, State> {
                 this.input.value = ''
                 break
             default:
-                this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
+                // this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
         }    
     }
     handleFocus(event: FocusEvent) {
-        this.props.onDispatch(SET_TYPYNG_STATUS, this.checkbox.checked)
+        const message = {
+            private: this.checkbox.checked,
+            meaasge: this.input.value
+        }
+        this.props.onDispatch(SET_TYPYNG_STATUS, message)
     }
 
     handleBlur(event: FocusEvent) {

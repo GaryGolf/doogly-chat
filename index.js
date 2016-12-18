@@ -18,33 +18,25 @@ server.listen(port, () => {
 
 io.on('connection', socket => {
     
-    socket.on('LoadMessages', (msg) => {
-        const list = messages.getLastMessages()
-        socket.emit('LoadMessages', list)
+    socket.on('init', (msg, callback) => {  
+        callback(messages.getLastMessages(), users.getNames())
     })
-
-    socket.on('Login', (name) => {
-        // if name already exist choose another one
-        if(!users.login(socket.id, name)){
-            socket.emit('ChangeLoginName', name)   
-            return 
-        }
+    
+    socket.on('login_user', (name, callback) => {
+        // if name already exist send error
+        const ok = users.login(socket.id, name)
         const list = messages.getLastMessages(name)
-        socket.emit('LoadMessages', list)
-        const names = users.getNames()
-        socket.broadcast.emit('UserLogin', names)
+        callback(ok, list)
+        socket.broadcast.emit('user_login', name)
     })
 
     socket.on('disconnect',() => {
-        const names = users.getNames()
-        socket.broadcast.emit('UserLogout', names)
-    })
-
-    socket.on('Logout', () => {
+        const name = users.getName(socket.id)
+        socket.broadcast.emit('user_logout', name)
         users.logout(socket.id)
     })
 
-    socket.on('NewMessage', (message, callback) => {
+    socket.on('new_message', (message, callback) => {
         
         message.date = Date.now()
         message.author = users.getName(socket.id)
@@ -54,12 +46,51 @@ io.on('connection', socket => {
         if(message.private){
             message.users.forEach(usr => {
                 const room = users.getId(usr)
-                if(room) io.to(room).emit('NewMessage', message)
+                if(room) io.to(room).emit('new_message', message)
             })
-        } else socket.broadcast.emit('NewMessage', message)
+        } else socket.broadcast.emit('new_message', message)
 
         message.status = 'sent'
         callback(message)
+    })
+
+    socket.on('typing', (message, callback) => {
+
+
+        if(!users.getName(socket.id)) {
+            callback(message)
+            return
+        }
+        if(message.date) {
+           callback(messages.getMessage(message.date))
+           return
+        } 
+        message.date = Date.now()
+        message.author = users.getName(socket.id)
+        message.message = 'typing...'
+        message.status = 'typing'
+        messages.push(message)
+
+        if(message.private){
+            message.users.forEach(usr => {
+                const room = users.getId(usr)
+                if(room) io.to(room).emit('new_message', message)
+            })
+        } else socket.broadcast.emit('new_message', message)
+
+        callback(message)
+    })
+
+    socket.on('cancel_typing', () => {
+        // who
+        const user = users.getName(socket.id)
+        // is there typing message ?
+        const message = messages.getTypingMessage(user)
+        
+        if(message) {
+            socket.broadcast.emit('remove_message', message.date)
+            messages.removeMessage(message.date)
+        }
     })
 
     socket.on('MessageReceived', (date) => {

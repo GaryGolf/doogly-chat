@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as io from 'socket.io-client'
 import {iMessage, ADD_RECIPIENT} from './constants'
-import Message from './message'
 import {Style, css} from './messagelist.style'
 
 
@@ -18,9 +17,9 @@ export default class MessageList extends React.Component<Props, State> {
         super(props)  
     }
 
-    handleClick(author: string, priv: boolean){
+    handleClick(user: string, priv: boolean){
 
-        this.props.onDispatch(ADD_RECIPIENT, {author, private:priv})
+        this.props.onDispatch(ADD_RECIPIENT, {user, private:priv})
     }
 
     drawMessage(message: iMessage) {
@@ -28,7 +27,7 @@ export default class MessageList extends React.Component<Props, State> {
         const date = new Date(message.date)
         const time = date.getHours()+':'+date.getMinutes()+':'+date.getSeconds()
         const users = message.users.map((usr, idx) => {
-            return <span key={idx} onClick={() => this.handleClick(message.author, 
+            return <span key={idx} onClick={() => this.handleClick(usr, 
                 message.private)}>@{usr},</span>
         })
 
@@ -39,8 +38,8 @@ export default class MessageList extends React.Component<Props, State> {
                 <div className={css.details}>
                     <span>{time}</span>&nbsp;&nbsp;
                     <span className={css.author}>{message.author}</span>&nbsp;&nbsp;
-                    <span className={(message.private) ? css.private : css.users}>{users}</span>&nbsp;&nbsp;
                     <span>{message.status}</span>&nbsp;&nbsp;
+                    <div className={(message.private) ? css.private : css.users}>{users}</div>
                 </div>
                 <style>{Style.getStyles()}</style>
             </div>

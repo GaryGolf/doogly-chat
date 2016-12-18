@@ -9,8 +9,14 @@ exports.getNames = function() {
     return userList.map(x => x.name)
 }
 
+exports.getNamesBut = function(id) {
+    const name = this.getName(id)
+    return userList.map(x => x.name).filter(usr => usr != name)
+}
+
 exports.logout = function(id) {
-    userList = userList.filter(user => id != user.id)
+    const idx = userList.findIndex(usr => usr.id == id)
+    userList.splice(idx,1)
 }
 
 exports.getName = function(id) {
