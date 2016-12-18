@@ -1,24 +1,10 @@
 const users = require('./users')
 const  messages  = [
             {
-                author: 'Boris Brodsky',
-                users: ['Nastya','Max Lancaster'],
+                author: 'Boss',
+                users: ['Max'],
                 date: 1481877130452,
                 message: 'Конечно, мы бы хотели получить от вас в ответ на это тестовое задание 100% реализацию требований, но это вовсе не обязательно, если вы понимаете, что охватить весь предложенный функционал в разумные сроки у вас не получится (в виду любых возможных обстоятельств), выберите комфортный для вас набор из списка требований — уверяем, это никаких не скажется на конечной оценке задания;',
-                private: true
-            },
-            {
-                author: 'Boris Brodsky',
-                users: [],
-                date: 1481877140452,
-                message: 'Let\'s go out, guys',
-                private: false
-            },
-            {
-                author: 'Eugenya Simonova',
-                users: ['Boris Brodsky'],
-                date: 1481877140552,
-                message: 'Kazeol !!',
                 private: false
             }
         ]
