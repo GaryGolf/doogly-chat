@@ -1110,7 +1110,7 @@
 	        bottom: '10px'
 	    }),
 	    users: exports.Style.registerStyle({
-	        fontSize: '0.7rem',
+	        fontSize: '1rem',
 	        color: 'blue',
 	        cursor: 'pointer'
 	    })

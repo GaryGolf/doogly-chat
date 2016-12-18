@@ -46,8 +46,6 @@ exports.getTypingMessage = function(name){
 
 exports.removeMessage = function(date){
     messages = messages.filter(msg => msg.date != date)
-    // const idx = messages.findIndex(msg => msg.date == date)
-    // messages.splice(idx,1)
 }
 
 exports.updateMessage = function(message) {

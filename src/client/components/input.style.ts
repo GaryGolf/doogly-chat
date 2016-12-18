@@ -13,7 +13,7 @@ export const css = {
         bottom: '10px'
     }),
     users: Style.registerStyle({
-       fontSize: '0.7rem',
+       fontSize: '1rem',
        color: 'blue',
        cursor: 'pointer'
     })

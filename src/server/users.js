@@ -1,4 +1,4 @@
-const userList = []
+var userList = []
 
 exports.login = function (id, name) {
     if(userList.some(usr => usr.name == name)) return false
@@ -15,8 +15,7 @@ exports.getNamesBut = function(id) {
 }
 
 exports.logout = function(id) {
-    const idx = userList.findIndex(usr => usr.id == id)
-    userList.splice(idx,1)
+    userList = userList.filter(usr => usr.id != id)
 }
 
 exports.getName = function(id) {
