@@ -105,10 +105,15 @@
 	                        _this.name == payload.user)
 	                        break;
 	                    _this.users.push(payload.user);
+	                    if (payload.private)
+	                        _this.priv = true;
+	                    console.log(_this.priv);
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.REMOVE_RECIPIENT:
 	                    _this.users = _this.users.filter(function (user) { return user != payload; });
+	                    if (_this.users.length == 0)
+	                        _this.priv = false;
 	                    _this.forceUpdate();
 	                    break;
 	                case constants_1.SET_TYPYNG_STATUS:
@@ -129,6 +134,7 @@
 	        };
 	        _this.socket = Window.prototype.socket = io();
 	        _this.users = [];
+	        _this.priv = false;
 	        var list = [];
 	        var login = false;
 	        var users = [];
@@ -191,7 +197,7 @@
 	            return React.createElement(login_1.default, { onDispatch: this.dispatch });
 	        return (React.createElement("div", null,
 	            React.createElement(messagelist_1.default, { list: this.state.list, onDispatch: this.dispatch }),
-	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch }),
+	            React.createElement(input_1.default, { users: this.users, onDispatch: this.dispatch, priv: this.priv }),
 	            React.createElement(userlist_1.default, { list: this.state.users, onDispatch: this.dispatch })));
 	    };
 	    return DooglyChat;
@@ -1001,7 +1007,6 @@
 	        return _this;
 	    }
 	    Input.prototype.componentDidMount = function () {
-	        // if(this.props.private) this.checkbox.checked = true
 	    };
 	    Input.prototype.componentDidUpdate = function () {
 	        // no recipients, no private message
@@ -1011,6 +1016,8 @@
 	        }
 	        else {
 	            this.checkbox.disabled = false;
+	            if (this.props.priv)
+	                this.checkbox.checked = true;
 	        }
 	    };
 	    Input.prototype.handleKeyUp = function (event) {

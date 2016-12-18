@@ -29,7 +29,7 @@ class DooglyChat extends React.Component<Props, State> {
     private socket: SocketIOClient.Socket
     private name: string
     private users: string[]
-    private typing: iMessage
+    private priv: boolean
 
 
     constructor(props: Props) {
@@ -37,6 +37,7 @@ class DooglyChat extends React.Component<Props, State> {
         
         this.socket = Window.prototype.socket = io()
         this.users = []
+        this.priv = false
 
         const list: iMessage[] = []
         const login: boolean = false
@@ -141,13 +142,19 @@ class DooglyChat extends React.Component<Props, State> {
                 }
                 // should get iMessage
                 // if message private new message should be private
+
+     
+
                 if(this.users.indexOf(payload.user) != -1 || 
                     this.name == payload.user) break
                 this.users.push(payload.user)
+                if(payload.private) this.priv = true
+console.log(this.priv)                
                 this.forceUpdate()
                 break
             case REMOVE_RECIPIENT :
                 this.users = this.users.filter(user => user != payload)
+                if(this.users.length == 0) this.priv = false
                 this.forceUpdate()
                 break
             case SET_TYPYNG_STATUS :
@@ -177,7 +184,7 @@ class DooglyChat extends React.Component<Props, State> {
                 <MessageList list={this.state.list}
                     onDispatch={this.dispatch}/>
                 <Input users={this.users}
-                    onDispatch={this.dispatch}/>
+                    onDispatch={this.dispatch} priv={this.priv}/>
                 <UserList list={this.state.users} onDispatch={this.dispatch}/>
             </div>
         )
