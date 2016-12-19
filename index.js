@@ -44,16 +44,15 @@ io.on('connection', socket => {
         message.author = users.getName(socket.id)
 
         messages.push(message)
-
+        message.status = 'sent'
+        callback(message)
+        message.status=''
         if(message.private){
             message.users.forEach(usr => {
                 const room = users.getId(usr)
                 if(room) io.to(room).emit('new_message', message)
             })
         } else socket.broadcast.emit('new_message', message)
-
-        message.status = 'sent'
-        callback(message)
     })
 
     socket.on('typing', (message) => {

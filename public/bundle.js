@@ -191,6 +191,10 @@
 	        // initial messages and users load
 	        this.socket.emit('init', null, function (list, users) {
 	            _this.setState(__assign({}, _this.state, { list: list, users: users }));
+	            // should i send reading notifications here?
+	            list.forEach(function (msg) {
+	                _this.socket.emit('message_received', msg.date);
+	            });
 	        });
 	    };
 	    DooglyChat.prototype.render = function () {
@@ -310,7 +314,7 @@
 	        padding: '10px',
 	        width: '100%',
 	        height: '70%',
-	        overflow: 'scroll'
+	        overflow: 'auto'
 	    }),
 	    message: exports.Style.registerStyle({
 	        position: 'relative',

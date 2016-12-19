@@ -97,6 +97,10 @@ class DooglyChat extends React.Component<Props, State> {
         this.socket.emit('init', null, 
             (list: iMessage[], users: string[]) =>{
                 this.setState({...this.state, list, users})
+                // should i send reading notifications here?
+                list.forEach(msg => {
+                    this.socket.emit('message_received', msg.date)
+                })
         })
     }
 

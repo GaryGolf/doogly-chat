@@ -11,7 +11,7 @@ export const css = {
         padding: '10px',
         width: '100%',
         height: '70%',
-        overflow: 'scroll'
+        overflow: 'auto'
     }),
     
      message: Style.registerStyle({
