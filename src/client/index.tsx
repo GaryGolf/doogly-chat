@@ -5,7 +5,8 @@ import * as ReactDOM from 'react-dom'
 import * as io from 'socket.io-client'
 
 import { iMessage, SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, LOAD_LAST_MESSAGES,
-    LOGIN_USER, ADD_RECIPIENT, REMOVE_RECIPIENT, REMOVE_TYPING_STATUS
+    LOGIN_USER, ADD_RECIPIENT, REMOVE_RECIPIENT, REMOVE_TYPING_STATUS, 
+    SHOW_USER_MENU, HIDE_USER_MENU
     } from './components/constants'
 
 import MessageList from './components/messagelist'
@@ -21,7 +22,9 @@ interface State {
     // login mode switch
     login: boolean,
     // chat clients
-    users: string[]
+    users: string[],
+
+    showusers: boolean
 }
 
 class DooglyChat extends React.Component<Props, State> {
@@ -42,7 +45,8 @@ class DooglyChat extends React.Component<Props, State> {
         const list: iMessage[] = []
         const login: boolean = false
         const users: string[] = []
-        this.state = {list , login, users}
+        const showusers = false
+        this.state = {list , login, users, showusers}
 
     }
 
@@ -173,6 +177,16 @@ class DooglyChat extends React.Component<Props, State> {
             case REMOVE_TYPING_STATUS :
                 this.socket.emit('cancel_typing')
                 break
+            case SHOW_USER_MENU :
+                if(!this.name) { 
+                    this.setState({...this.state, login: true})
+                    break
+                }
+                this.setState({...this.state,showusers: true})
+                break
+            case HIDE_USER_MENU :
+                this.setState({...this.state,showusers: false})
+                break
             default:
                 break
         }
@@ -181,15 +195,20 @@ class DooglyChat extends React.Component<Props, State> {
     render(){
         
 
-        if(this.state.login) return <Login onDispatch={this.dispatch} />
+        if(this.state.login) return (
+          <div className="container">   
+            <Login onDispatch={this.dispatch} />
+          </div>
+        )
 
         return (
             <div className="container">
-                <MessageList list={this.state.list}
+                <MessageList list={this.state.list} name={this.name}
                     onDispatch={this.dispatch}/>
                 <Input users={this.users}
                     onDispatch={this.dispatch} priv={this.priv}/>
-                <UserList list={this.state.users} onDispatch={this.dispatch}/>
+                
+                <UserList list={this.state.users} showusers={this.state.showusers} onDispatch={this.dispatch}/>
             </div>
         )
     }

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as io from 'socket.io-client'
 
-import {Style, css} from './login.style'
 import {LOGIN_USER} from './constants'
 
 
@@ -43,13 +42,23 @@ export default class Login extends React.Component<Props, State> {
     }
 
     render() {
+       
         return (
-            <div className={css.login}>
-                <h3> please login </h3>
-                <input type="text" ref={element => this.input = element} 
-                    onKeyUp={this.handleKeyUp.bind(this)} placeholder="enter you nickname"/>
-                    <button className="btn btn-default" onClick={this.handleSubmit.bind(this)}>Submit</button>
-                <style>{Style.getStyles()}</style>
+
+            <div className="form-group login-form">
+                <div className="input-group">
+                    <div className="input-group-addon">Login</div>
+                    <input className="form-control" type="text" 
+                        onKeyUp={this.handleKeyUp.bind(this)} 
+                        ref={elmt => this.input=elmt} 
+                        placeholder="Enter Your Nickname" />
+                    <span className="input-group-btn">
+                        <button className="btn btn-default" type="button" 
+                            onClick={this.handleSubmit.bind(this)}>
+                            Sumbit
+                        </button>
+                    </span>
+                </div>
             </div>
         )
     }

@@ -1,8 +1,7 @@
 import * as React from 'react'
 
-import {Style, css} from './input.style'
 import {SET_TYPYNG_STATUS, GOT_NEW_MESSAGE, REMOVE_RECIPIENT, 
-    REMOVE_TYPING_STATUS} from './constants'
+    REMOVE_TYPING_STATUS, SHOW_USER_MENU, HIDE_USER_MENU} from './constants'
 
 
 interface State {}
@@ -17,10 +16,12 @@ export default class Input extends React.Component<Props, State> {
     private placeholder: string
     private input: HTMLInputElement
     private checkbox: HTMLInputElement
+    private usermenu: boolean
 
     constructor(props: Props) {
         super(props)  
         
+        this.usermenu = false
         this.placeholder = 'type here'
         
     }
@@ -64,6 +65,7 @@ export default class Input extends React.Component<Props, State> {
             private: this.checkbox.checked,
             meaasge: '...'
         }
+        this.props.onDispatch(HIDE_USER_MENU)
         this.props.onDispatch(SET_TYPYNG_STATUS, message)
     }
 
@@ -78,13 +80,24 @@ export default class Input extends React.Component<Props, State> {
     }
 
     handleSubmit() {
-
+        this.usermenu = false
+        this.props.onDispatch(HIDE_USER_MENU)
         if(this.input.value == '') return
         this.props.onDispatch(GOT_NEW_MESSAGE,{
             message: this.input.value,
             private: this.checkbox.checked
         })
         this.input.value = ''
+    }
+    handleUserMenu() {
+        if(this.usermenu){
+            this.props.onDispatch(HIDE_USER_MENU, null)    
+            this.usermenu = false
+        } else {
+            this.props.onDispatch(SHOW_USER_MENU, null)
+            this.usermenu = true
+        }
+        
     }
 
     render() {
@@ -96,19 +109,29 @@ export default class Input extends React.Component<Props, State> {
         }
 
         const users = this.props.users.map((usr,idx) => {
-            return <span key={idx} onClick={() => this.handleClick(usr)}>@{usr},</span>
+            return <span key={idx} style={{color: '#999'}} onClick={() => this.handleClick(usr)}>&nbsp;@{usr},</span>
         })
 
         return (
-            <div className={css.input}>
-                <div className={css.users}>{users}</div>
-                <input type="text" ref={element => this.input = element} 
-                    className="form-control" {...handlers} placeholder={this.placeholder}/>
-                <button className="btn btn-default navbar-btn" 
-                    onClick={this.handleSubmit.bind(this)}>Submit</button>
-                    &nbsp;private
-                <input type="checkbox" ref={element => this.checkbox = element} />
-                <style>{Style.getStyles()}</style>
+            <div className="input">
+                <div className='bg-warning h6 pointer'>{users}</div>
+                <div className="input-group">
+                    <span className="input-group-btn">
+                        <button className="btn btn-default" type="button" 
+                            onClick={this.handleUserMenu.bind(this)}>
+                            <i className="fa fa-user-plus" aria-hidden="true"></i>
+                        </button>
+                    </span>
+                    <input type="text" className="form-control" ref={elmt => this.input=elmt} 
+                        {...handlers} aria-label="chat input" />
+                    <span className="input-group-addon">
+                        <input type="checkbox" aria-label="private" ref={elmt => this.checkbox = elmt}/>
+                    </span>
+                    <span className="input-group-btn">
+                        <button className="btn btn-default" type="button" 
+                            onClick={this.handleSubmit.bind(this)}>Sumbit</button>
+                    </span>
+                </div>
             </div>
         )
     }

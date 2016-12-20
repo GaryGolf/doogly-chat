@@ -1,12 +1,11 @@
 import * as React from 'react'
 
-import {iMessage, ADD_RECIPIENT} from './constants'
-import {Style, css} from './messagelist.style'
-
+import {iMessage, ADD_RECIPIENT, HIDE_USER_MENU} from './constants'
 
 interface State {}
 interface Props {
     list: iMessage[],
+    name: string,
     onDispatch: any
 }
 
@@ -29,26 +28,39 @@ export default class MessageList extends React.Component<Props, State> {
         this.props.onDispatch(ADD_RECIPIENT, {user, private:priv})
     }
 
+    handleUserMenu() {
+        this.props.onDispatch(HIDE_USER_MENU)
+    }
+
     drawMessage(message: iMessage) {
         
         const date = new Date(message.date)
         const time = date.toLocaleTimeString()
         const users = message.users.map((usr, idx) => {
             return <span key={idx} onClick={() => this.handleClick(usr, 
-                message.private)}>@{usr},</span>
+                message.private)}>@{usr},&nbsp;</span>
         })
 
         return (
-            <div className={css.message}>
-                <div className={css.body} onClick={() => this.handleClick(message.author, 
-                        message.private)}>{message.message}</div>
-                <div className={css.details}>
-                    <span>{time}</span>&nbsp;&nbsp;
-                    <span className={css.author}>{message.author}</span>&nbsp;&nbsp;
-                    <span>{message.status}</span>&nbsp;&nbsp;
-                    <div className={(message.private) ? css.private : css.users}>{users}</div>
+            <div className={`well ${this.props.name == message.author ? 'text-right' : null}`}
+                onClick={this.handleUserMenu.bind(this)}>
+
+                <div className='message h4 pointer' 
+                    onClick={() => this.handleClick(message.author, message.private)}>
+                    {message.message}
                 </div>
-                <style>{Style.getStyles()}</style>
+
+                <div className='small'>
+                    <span>{time}&nbsp;</span>
+                    <span className={this.props.name == message.author ? 'hidden':'pointer'} 
+                        onClick={() => this.handleClick(message.author,message.private)}>
+                        <strong>{message.author}</strong>&nbsp;
+                    </span>
+                    <span className={(message.private) ? 'text-danger pointer':'text-info pointer'}>
+                        {users}&nbsp;
+                    </span>
+                    <span>{message.status}</span>
+                </div>
             </div>
         )
     }
@@ -57,6 +69,6 @@ export default class MessageList extends React.Component<Props, State> {
 
         const list = this.props.list.map((msg, idx) => <div key={idx}>{this.drawMessage(msg)}</div>)
 
-        return <div className={css.messagelist} ref={element => this.messagelist = element}>{list}</div>
+        return <div className='messagelist' ref={element => this.messagelist = element}>{list}</div>
     }
 }
